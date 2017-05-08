@@ -21,7 +21,8 @@ class TestSerializers(TestDataMixin, TestCase):
         serializer = serializers.ProgrammeSerializer(self.programme)
         self.assertListEqual(
             serializer.data.keys(),
-            ['slug', 'name', 'synopsis', 'runtime', 'photo', 'language', 'category'])
+            ['slug', 'name', 'synopsis', 'runtime', 'photo', 'language',
+             'category', 'created_at', 'updated_at'])
 
     def test_programme_photo_url(self):
         serializer = serializers.ProgrammeSerializer(self.programme)
@@ -32,7 +33,8 @@ class TestSerializers(TestDataMixin, TestCase):
         serializer = serializers.EpisodeSerializer(self.episode)
         self.assertListEqual(
             serializer.data.keys(),
-            ['title', 'programme', 'summary', 'issue_date', 'season', 'number_in_season'])
+            ['title', 'programme', 'summary', 'issue_date', 'season',
+             'number_in_season', 'created_at', 'updated_at'])
 
     def test_episode_programme(self):
         serializer = serializers.EpisodeSerializer(self.episode)

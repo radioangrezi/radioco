@@ -27,7 +27,7 @@ import mock
 import recurrence
 
 from radioco.apps.programmes.models import Programme, Episode
-from radioco.apps.radio.tests import TestDataMixin
+from radioco.apps.radio.tests import TestDataMixin, now
 from radioco.apps.schedules import utils
 from radioco.apps.schedules.models import MO, TU, WE, TH, FR, SA, SU
 from radioco.apps.schedules.models import ScheduleBoard, ScheduleBoardManager
@@ -205,7 +205,7 @@ class ScheduleModelTests(TestDataMixin, TestCase):
     def test_unicode(self):
         self.assertEqual(unicode(self.schedule), 'Monday - 14:00:00')
 
-    @mock.patch('django.utils.timezone.now', mock_now)
+    @mock.patch('django.utils.timezone.now', now)
     def test_save_rearange_episodes(self):
         self.assertEqual(
             self.episode.issue_date, datetime.datetime(2015, 1, 1, 14, 0))

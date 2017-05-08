@@ -10,7 +10,8 @@ class ProgrammeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Programme
-        fields = ('slug', 'name', 'synopsis', 'runtime', 'photo', 'language', 'category')
+        fields = ('slug', 'name', 'synopsis', 'runtime', 'photo', 'language',
+                  'category', 'created_at', 'updated_at')
 
 
 class EpisodeSerializer(serializers.ModelSerializer):
@@ -18,8 +19,8 @@ class EpisodeSerializer(serializers.ModelSerializer):
         slug_field='slug', queryset=Programme.objects.all())
     class Meta:
         model = Episode
-        fields = ('title', 'programme', 'summary',
-                  'issue_date', 'season', 'number_in_season')
+        fields = ('title', 'programme', 'summary', 'issue_date', 'season',
+                  'number_in_season', 'created_at', 'updated_at')
 
 
 class ScheduleSerializer(serializers.ModelSerializer):

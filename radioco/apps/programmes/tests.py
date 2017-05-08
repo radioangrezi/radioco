@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from radioco.apps.programmes.models import Programme, Episode, EpisodeManager, Role
-from radioco.apps.radio.tests import TestDataMixin
+from radioco.apps.radio.tests import TestDataMixin, now
 from django.contrib.admin.options import ModelAdmin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
@@ -23,10 +23,12 @@ from django.core.exceptions import ValidationError, FieldError
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 import datetime
+import mock
 
 
 class ProgrammeModelTests(TestCase):
 
+    @mock.patch('django.utils.timezone.now', now)
     def setUp(self):
         self.programme = Programme.objects.create(
             name="Test programme",
@@ -63,6 +65,14 @@ class ProgrammeModelTests(TestCase):
     def test_absolute_url(self):
         self.assertEqual(
             self.programme.get_absolute_url(), "/programmes/test-programme/")
+
+    def test_created_at(self):
+        self.assertEqual(self.programme.created_at,
+                         datetime.datetime(2014, 1, 1, 13, 30, 0, 0))
+
+    def test_updated_at(self):
+        self.assertEqual(self.programme.updated_at,
+                         datetime.datetime(2014, 1, 1, 13, 30, 0, 0))
 
     def test_str(self):
         self.assertEqual(str(self.programme), "Test programme")
@@ -137,6 +147,8 @@ class EpisodeManagerTests(TestDataMixin, TestCase):
 
 
 class EpisodeModelTests(TestCase):
+
+    @mock.patch('django.utils.timezone.now', now)
     def setUp(self):
         self.programme = Programme.objects.create(
             name="Test programme",
@@ -157,5 +169,13 @@ class EpisodeModelTests(TestCase):
         self.assertEqual(
             self.episode.get_absolute_url(), "/programmes/test-programme/8x1/")
 
+    def test_created_at(self):
+        self.assertEqual(self.episode.created_at,
+                         datetime.datetime(2014, 1, 1, 13, 30, 0, 0))
+
+    def test_updated_at(self):
+        self.assertEqual(self.episode.updated_at,
+                         datetime.datetime(2014, 1, 1, 13, 30, 0, 0))
     def test_str(self):
         self.assertEqual(str(self.episode), "8x1 Test programme")
+

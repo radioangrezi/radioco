@@ -22,6 +22,10 @@ import datetime
 import utils
 
 
+def now():
+    return datetime.datetime(2014, 1, 1, 13, 30, 0)
+
+
 class TestDataMixin(object):
     @classmethod
     def setUpTestData(cls):
