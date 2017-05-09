@@ -186,13 +186,22 @@ class Schedule(models.Model):
         """
             Return a sorted list of dates between after and before
         """
+        # hacky workaround, remove after upstream bug is solved
+        # https://github.com/django-recurrence/django-recurrence/issues/94
+        self.__fix_rdates__()
         return self.recurrences.between(
             self._merge_after(after), self._merge_before(before), inc=True)
 
     def date_before(self, before):
+        # hacky workaround, remove after upstream bug is solved
+        # https://github.com/django-recurrence/django-recurrence/issues/94
+        self.__fix_rdates__()
         return self.recurrences.before(self._merge_before(before), inc=True)
 
     def date_after(self, after, inc=True):
+        # hacky workaround, remove after upstream bug is solved
+        # https://github.com/django-recurrence/django-recurrence/issues/94
+        self.__fix_rdates__()
         return self.recurrences.after(self._merge_after(after), inc)
 
     def save(self, *args, **kwargs):
@@ -214,6 +223,17 @@ class Schedule(models.Model):
 
     def __unicode__(self):
         return ' - '.join([self.start.strftime('%A'), self.start.strftime('%X')])
+
+    def __fix_rdates__(self):
+        def fix_rdate(rdate):
+            return datetime.datetime.combine(rdate, datetime.time(
+                self.start.hour,
+                self.start.minute,
+                self.start.second,
+                self.start.microsecond,
+                self.start.tzinfo))
+        self.recurrences.rdates = map(fix_rdate, self.recurrences.rdates)
+        self.recurrences.exdates = map(fix_rdate, self.recurrences.exdates)
 
 
 # XXX entry point for transmission details (episode, recordings, ...)
