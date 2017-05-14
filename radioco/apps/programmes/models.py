@@ -95,6 +95,8 @@ class Programme(models.Model):
     slug = models.SlugField(max_length=100, unique=True)
     _runtime = models.PositiveIntegerField(
         validators=[MinValueValidator(1)], verbose_name=_("runtime"), help_text=_("In minutes."))
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     @property
     def runtime(self):
@@ -188,6 +190,8 @@ class Episode(models.Model):
     issue_date = models.DateTimeField(blank=True, null=True, db_index=True, verbose_name=_('issue date'))
     season = models.PositiveIntegerField(validators=[MinValueValidator(1)], verbose_name=_("season"))
     number_in_season = models.PositiveIntegerField(validators=[MinValueValidator(1)], verbose_name=_("No. in season"))
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     # XXX this is not true for archived episodes
     @property
