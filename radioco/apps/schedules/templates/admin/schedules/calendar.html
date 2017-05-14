@@ -40,7 +40,6 @@
             message(msg, "success");
         }
 
-
         function message(msg, tag) {
             $("<li>").append(msg)
                 .addClass("grp-" + tag)
@@ -50,6 +49,19 @@
                 })
                 .appendTo("#messages");
             $("#messages").slideDown();
+        }
+
+        function searchProgramme() {
+          var search = document.getElementById("programmeSearch").value.toUpperCase();
+          var programmes = document.getElementById("programmes").getElementsByTagName('div');
+
+          for (var i=0; i<programmes.length; i++) {
+            if (programmes[i].innerHTML.toUpperCase().indexOf(search) > -1) {
+              programmes[i].style.display = "";
+            } else {
+              programmes[i].style.display = "none";
+            }
+          }
         }
 
         // using jQuery
@@ -235,6 +247,9 @@
             $.getJSON({
                 url: "{% url 'api:programme-list' %}",
                 success: function(programmes) {
+                    programmes.sort(function(a, b) {
+                      return a.name > b.name;
+                    });
                     for (var i=0; i<programmes.length; i++) {
                         var programme = programmes[i];
 
@@ -291,6 +306,7 @@
             <!-- <div class="grp-module" id='external-events'> -->
             <div class="grp-module">
                 <h3>{% trans "Programmes" %}</h3>
+                <input type="text" id="programmeSearch" class="grp-row" onkeyup="searchProgramme()" placeholder="Search for programme.." />
                 <span id="programmes" />
             </div>
             <div class="grp-module">
