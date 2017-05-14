@@ -165,9 +165,10 @@ class ScheduleModelTests(TestDataMixin, TestCase):
             datetime.datetime(2014, 1, 13, 14, 0))
 
     def test_dates_between(self):
-        self.assertEqual(
-            self.schedule.dates_between(
-                datetime.datetime(2014, 1, 1), datetime.datetime(2014, 1, 14)),
+        self.assertListEqual(
+            list(self.schedule.dates_between(
+                datetime.datetime(2014, 1, 1),
+                datetime.datetime(2014, 1, 14))),
             [datetime.datetime(2014, 1, 6, 14, 0),
              datetime.datetime(2014, 1, 13, 14, 0)])
 
@@ -182,24 +183,65 @@ class ScheduleModelTests(TestDataMixin, TestCase):
                     recurrence.WEEKLY, byday=[recurrence.MO, recurrence.TU])]))
 
         self.assertListEqual(
-            schedule.dates_between(
-                datetime.datetime(2014, 1, 1), datetime.datetime(2014, 1, 9)),
+            list(schedule.dates_between(
+                datetime.datetime(2014, 1, 1),
+                datetime.datetime(2014, 1, 9))),
             [datetime.datetime(2014, 1, 2, 14, 0),
              datetime.datetime(2014, 1, 4, 14, 0),
              datetime.datetime(2014, 1, 8, 14, 0)])
 
+    # hacky workaround, remove after upstream bug is solved
+    # https://github.com/django-recurrence/django-recurrence/issues/94
+    def test_dates_between_rdate(self):
+        schedule = Schedule(
+            programme=Programme(name="Programme 14:00 - 15:00", runtime=60),
+            schedule_board=self.schedule_board,
+            recurrences=recurrence.Recurrence(
+                dtstart=datetime.datetime(2014, 1, 2, 14, 0, 0),
+                rrules=[recurrence.Rule(recurrence.DAILY, interval=2)],
+                rdates=[datetime.datetime(2014, 1, 5, 0, 0)]))
+
+        self.assertListEqual(
+            list(schedule.dates_between(
+                datetime.datetime(2014, 1, 4),
+                datetime.datetime(2014, 1, 7))),
+            [datetime.datetime(2014, 1, 4, 14, 0),
+             datetime.datetime(2014, 1, 5, 14, 0),
+             datetime.datetime(2014, 1, 6, 14, 0)])
+
+
+    # hacky workaround, remove after upstream bug is solved
+    # https://github.com/django-recurrence/django-recurrence/issues/94
+    def test_dates_between_exdate(self):
+        schedule = Schedule(
+            programme=Programme(name="Programme 14:00 - 15:00", runtime=60),
+            schedule_board=self.schedule_board,
+            recurrences=recurrence.Recurrence(
+                dtstart=datetime.datetime(2014, 1, 2, 14, 0, 0),
+                rrules=[recurrence.Rule(recurrence.DAILY)],
+                exdates=[datetime.datetime(2014, 1, 5, 0, 0, 0)]))
+
+        self.assertListEqual(
+            list(schedule.dates_between(
+                datetime.datetime(2014, 1, 4),
+                datetime.datetime(2014, 1, 7))),
+            [datetime.datetime(2014, 1, 4, 14, 0),
+             datetime.datetime(2014, 1, 6, 14, 0)])
+
     def test_dates_between_later_start_by_board(self):
         self.schedule_board.start_date = datetime.date(2014, 1, 7)
         self.assertListEqual(
-            self.schedule.dates_between(
-                datetime.datetime(2014, 1, 1), datetime.datetime(2014, 1, 14)),
+            list(self.schedule.dates_between(
+                datetime.datetime(2014, 1, 1),
+                datetime.datetime(2014, 1, 14))),
             [datetime.datetime(2014, 1, 13, 14, 0)])
 
     def test_dates_between_erlier_end_by_board(self):
         self.schedule_board.end_date = datetime.date(2014, 1, 7)
         self.assertListEqual(
-            self.schedule.dates_between(
-                datetime.datetime(2014, 1, 1), datetime.datetime(2014, 1, 14)),
+            list(self.schedule.dates_between(
+                datetime.datetime(2014, 1, 1),
+                datetime.datetime(2014, 1, 14))),
             [datetime.datetime(2014, 1, 6, 14, 0)])
 
     def test_unicode(self):
