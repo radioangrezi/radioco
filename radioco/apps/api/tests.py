@@ -1,6 +1,6 @@
 from radioco.apps.programmes.models import Programme, Episode
 from radioco.apps.radio.tests import TestDataMixin
-from radioco.apps.schedules.models import ScheduleBoard, Schedule, Transmission
+from radioco.apps.schedules.models import Schedule, Transmission
 from radioco.apps.schedules.models import WE
 from django.contrib.auth.models import User, Permission
 from django.test import TestCase
@@ -46,7 +46,6 @@ class TestSerializers(TestDataMixin, TestCase):
             'title': u'Classic hits', 'source': None,
             'start': '2015-01-01T14:00:00',
             'end': datetime.datetime(2015, 1, 1, 15, 0),
-            'schedule_board': u'example',
             'type': 'L', 'id': 5,
             'programme': u'classic-hits'})
 
@@ -128,7 +127,7 @@ class TestAPI(TestDataMixin, APITestCase):
         response = self.client.get(
             '/api/2/schedules', {'programme': self.programme.slug})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
+        self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['title'], self.programme.name)
 
     def test_schedules_get_by_nonexisting_programme(self):
@@ -137,26 +136,13 @@ class TestAPI(TestDataMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 0)
 
-    def test_schedules_get_by_board(self):
-        response = self.client.get(
-            '/api/2/schedules', {'schedule_board': self.schedule_board.slug})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 5)
-        self.assertEqual(
-            response.data[0]['schedule_board'], self.schedule_board.slug)
-
-    def test_schedules_get_by_nonexisting_board(self):
-        response = self.client.get(
-            '/api/2/schedules', {'schedule_board': 'foobar'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 0)
-
     def test_schedules_get_by_type(self):
         response = self.client.get('/api/2/schedules?type=L')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 5)
-        self.assertEqual(
-            response.data[0]['schedule_board'], self.schedule_board.slug)
+        self.assertIn('L', map(lambda s: s['type'], response.data))
+        self.assertFalse(
+            filter(lambda s: s != 'L',
+                   map(lambda s: s['type'], response.data)))
 
     def test_schedules_get_by_nonexiting_type(self):
         response = self.client.get('/api/2/schedules?type=B')
@@ -187,15 +173,6 @@ class TestAPI(TestDataMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(len(response.data)>20)
 
-    @mock.patch('django.utils.timezone.now', mock_now)
-    def test_transmission_list_filter_board(self):
-        response = self.client.get(
-            '/api/2/transmissions', {'schedule_board': 'another'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertListEqual(
-            map(lambda t: (t['slug'], t['start']), response.data),
-            [(u'classic-hits', '2015-01-06T16:30:00')])
-
     def test_transmission_after(self):
         response = self.client.get(
             '/api/2/transmissions', {'after': datetime.date(2015, 02, 01)})
@@ -220,9 +197,3 @@ class TestAPI(TestDataMixin, APITestCase):
         self.assertListEqual(
             map(lambda t: (t['slug'], t['start']), response.data),
             [(u'classic-hits', '2015-01-06T14:00:00')])
-
-    def test_transmissions_filter_board_nonexistend(self):
-        response = self.client.get(
-            '/api/2/transmissions', {'schedule_board': 'Foo'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 0)

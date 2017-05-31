@@ -117,10 +117,6 @@
         $(document).ready(function () {
             reloadProgrammes();
 
-            $("#select-board").change(function() {
-                    $('#calendar').fullCalendar( 'refetchEvents')
-            });
-
             var calendar = $('#calendar').fullCalendar({
                 height: 'auto',
                 contentHeight: 'auto',
@@ -139,9 +135,6 @@
                 eventSources: [
                   {
                     url: '{% url "api:schedule-list" %}',
-                    data: function() {
-                      return { schedule_board: $("#select-board").val() }
-                    },
                     error: function() {
                         alert('{% trans "There was an error while fetching schedules" %}');
                     },
@@ -173,9 +166,6 @@
                     contentType: 'application/json',
                     startParam: 'after',
                     endParam: 'before',
-                    data: function() {
-                      return { schedule_board: $("#select-board").val() }
-                    },
                     error: function() {
                         alert('{% trans "There was an error while fetching transmissions" %}');
                     },
@@ -195,7 +185,6 @@
                 droppable: true, // this allows things to be dropped onto the calendar !!!
                 drop: function (date) { // this function is called when something is dropped
                   var programme = $(this).data('slug');
-                  var schedule_board = $("#select-board").val();
                   var type = $("input[name='group1']:checked").val();
 
                   // create the event 
@@ -204,7 +193,6 @@
                       url: "{% url 'api:schedule-list' %}",
                       contentType: 'application/json',
                       data: JSON.stringify({
-                          schedule_board: schedule_board,
                           programme: programme,
                           start: date,
                           type: type
@@ -286,21 +274,6 @@
 {% block content %}
 <div  class="l-2c-fluid l-d-6">
     <div class="c-1">
-        <div class="grp-module">
-            <h2>{% trans "Schedule board" %}</h2>
-            <div class="grp-module">
-                <select id="select-board" class="form-control">
-                    {% for schedule_board in schedule_boards %}
-                    <option value="{{schedule_board.slug}}"
-                            {% if schedule_board == current_scheduleBoard %}
-                                    selected="selected"
-                            {% endif %}>
-                            {{schedule_board.name}}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-        </div>
         <div class="grp-group">
             <h2>Selection</h2>
             <!-- <div class="grp-module" id='external-events'> -->

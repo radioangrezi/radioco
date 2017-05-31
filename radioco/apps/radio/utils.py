@@ -1,6 +1,6 @@
 from radioco.apps.global_settings.models import SiteConfiguration
 from radioco.apps.programmes.models import Programme, Episode, Role, CONTRIBUTOR, Podcast
-from radioco.apps.schedules.models import Schedule, ScheduleBoard, MO, TU, WE, TH, FR, SA, SU
+from radioco.apps.schedules.models import Schedule, MO, TU, WE, TH, FR, SA, SU
 from radioco.apps.schedules.utils import rearrange_episodes
 from django.contrib.auth.models import User
 import datetime
@@ -32,14 +32,6 @@ def create_example_data():
     site_config.twitter_address = 'https://twitter.com/RadioCo_org'
     site_config.save()
 
-    # Example schedule
-    schedule_board, created = ScheduleBoard.objects.get_or_create(
-        name='Example', slug='example', start_date=datetime.date(2015, 1, 1))
-
-    # Another example schedule
-    ScheduleBoard.objects.get_or_create(
-        name='Another example', start_date=datetime.date(2015, 6, 1))
-
     # Programme 1
     synopsis = '''
         Lorem Ipsum is simply dummy text of the printing and typesetting industry.
@@ -65,7 +57,6 @@ def create_example_data():
     Schedule.objects.get_or_create(
         programme=programme,
         type='L',
-        schedule_board=schedule_board,
         recurrences=recurrences)
 
     for number in range(1, 4):
@@ -128,7 +119,6 @@ def create_example_data():
         Schedule.objects.get_or_create(
             programme=programme,
             type='L',
-            schedule_board=schedule_board,
             recurrences=recurrences)
 
         for season in range(1, 8):
