@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from radioco.apps.programmes.models import Programme, Episode
+from radioco.apps.programmes.models import Programme
 from dateutil import rrule
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
@@ -55,75 +55,6 @@ WEEKDAY_CHOICES = (
 )
 
 
-class ScheduleBoardManager(models.Manager):
-    # XXX get from global setting
-    def current(self, date=None):
-        if not date:
-            date = datetime.date.today()
-
-        current_board = (ScheduleBoard.objects
-                  .order_by("-start_date")
-                  .filter(
-                      Q(start_date__lte=date, end_date__isnull=True) |
-                      Q(start_date__lte=date, end_date__gte=date))
-                  .first())
-        return current_board
-
-
-class ScheduleBoard(models.Model):
-    class Meta:
-        verbose_name = _('schedule board')
-        verbose_name_plural = _('schedule board')
-
-    name = models.CharField(max_length=255, unique=True, verbose_name=_("name"))
-    slug = models.SlugField(max_length=255, unique=True)
-    start_date = models.DateField(blank=True, null=True, verbose_name=_('start date'))
-    end_date = models.DateField(blank=True, null=True, verbose_name=_('end date'))
-
-    def clean(self):
-        if self.start_date is None:
-            return
-        if self.end_date is None:
-            return
-        if self.start_date > self.end_date:
-            raise ValidationError(
-                _('end date must be greater than or equal to start date.'),
-                code='date missmatch')
-
-    def save(self, *args, **kwargs):
-        import utils
-
-        self.slug = slugify(self.name)
-
-        # rearrange episodes
-        if self.pk is not None:
-            orig = ScheduleBoard.objects.get(pk=self.pk)
-            if (orig.start_date == self.start_date and
-                orig.end_date == self.end_date and
-                orig.schedule_set == self.schedule_set):
-                # no relevant fields have changed
-
-                super(ScheduleBoard, self).save(*args, **kwargs)
-                return
-
-        super(ScheduleBoard, self).save(*args, **kwargs)
-        # XXX filter unique programmes
-        for schedule in self.schedule_set.all():
-            utils.rearrange_episodes(
-                schedule.programme, django.utils.timezone.now())
-
-    def __unicode__(self):
-        return u"%s" % (self.name)
-
-
-@receiver(post_delete, sender=ScheduleBoard)
-def delete_ScheduleBoard_handler(sender, **kwargs):
-    import utils
-    now = django.utils.timezone.now()
-    for programme in Programme.objects.all():
-        utils.rearrange_episodes(programme, now)
-
-
 class Schedule(models.Model):
     class Meta:
         verbose_name = _('schedule')
@@ -131,7 +62,6 @@ class Schedule(models.Model):
 
     programme = models.ForeignKey(Programme, verbose_name=_("programme"))
     type = models.CharField(verbose_name=_("type"), choices=EMISSION_TYPE, max_length=1)
-    schedule_board = models.ForeignKey(ScheduleBoard, verbose_name=_("schedule board"))
     recurrences = RecurrenceField(verbose_name=_("recurrences"))
     source = models.ForeignKey(
         'self', blank=True, null=True, on_delete=models.SET_NULL, verbose_name=_("source"),
@@ -144,15 +74,7 @@ class Schedule(models.Model):
 
     @property
     def start(self):
-        if not self.schedule_board.start_date:
-            return self.rr_start
-        else:
-            start_date_board = datetime.datetime.combine(
-                self.schedule_board.start_date, datetime.time(0))
-        # XXX this does not make any sense
-        if not self.rr_start:
-            return start_date_board
-        return max(start_date_board, self.rr_start)
+        return self.rr_start
 
     @start.setter
     def start(self, start_date):
@@ -160,15 +82,9 @@ class Schedule(models.Model):
 
     @property
     def end(self):
-        if not self.schedule_board.end_date:
-            return self.rr_end
-        else:
-            end_date_board = datetime.datetime.combine(
-                self.schedule_board.end_date, datetime.time(23, 59, 59))
-        if not self.rr_end:
-            return end_date_board
-        return min(end_date_board, self.rr_end)
+        return self.rr_end
 
+    # XXX refactor
     @property
     def rr_start(self):
         return self.recurrences.dtstart
@@ -214,12 +130,9 @@ class Schedule(models.Model):
             return before
         return min(before, self.end)
 
+    # XXX refactor
     def _merge_after(self, after):
-        if not self.schedule_board.start_date:
-            return after
-
-        return max(after, datetime.datetime.combine(
-            self.schedule_board.start_date, datetime.time(0)))
+        return after
 
     def __unicode__(self):
         return ' - '.join([self.start.strftime('%A'), self.start.strftime('%X')])
@@ -264,7 +177,7 @@ class Transmission(object):
 
     @classmethod
     def at(cls, at):
-        # XXX filter board, filter schedule start / end
+        # XXX filter schedule start / end
         schedules = Schedule.objects.all()
         for schedule in schedules:
             date = schedule.date_before(at)

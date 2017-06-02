@@ -1,5 +1,5 @@
 from radioco.apps.programmes.models import Programme, Episode
-from radioco.apps.schedules.models import ScheduleBoard, Schedule, Transmission
+from radioco.apps.schedules.models import Schedule, Transmission
 from django import forms
 from django import utils
 from django.shortcuts import get_object_or_404
@@ -36,9 +36,8 @@ class EpisodeViewSet(viewsets.ReadOnlyModelViewSet):
 class ScheduleFilter(filters.FilterSet):
     class Meta:
         model = Schedule
-        fields = ('programme', 'schedule_board', 'type')
+        fields = ('programme', 'type')
 
-    schedule_board = django_filters.CharFilter(name="schedule_board__slug")
     programme = django_filters.CharFilter(name="programme__slug")
 
 
@@ -53,7 +52,6 @@ class ScheduleViewSet(viewsets.ModelViewSet):
 class TransmissionForm(forms.Form):
     after = forms.DateField(required=False)
     before = forms.DateField(required=False)
-    schedule_board = forms.CharField(required=False)
 
     def clean_after(self):
         after = self.cleaned_data.get('after')
