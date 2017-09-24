@@ -72,11 +72,10 @@ class Programme(models.Model):
 
     name = models.CharField(
         max_length=100, unique=True, verbose_name=_("name"),
-        help_text=_("Please DON'T change this value. It's used to build URL's.")
-    )
+        help_text=_(
+            "Please DON'T change this value. It's used to build URL's."))
     announcers = models.ManyToManyField(
-        User, blank=True, null=True, through='Role', verbose_name=_("announcers")
-    )
+        User, blank=True, through='Role', verbose_name=_("announcers"))
     synopsis = RichTextField(blank=True, verbose_name=_("synopsis"))
     photo = models.ImageField(
         upload_to='photos/', default='defaults/default-programme-photo.jpg', verbose_name=_("photo")
@@ -186,8 +185,7 @@ class Episode(models.Model):
     title = models.CharField(
         max_length=100, blank=True, null=True, verbose_name=_("title"))
     people = models.ManyToManyField(
-        User, blank=True, null=True,
-        through='Participant', verbose_name=_("people"))
+        User, blank=True, through='Participant', verbose_name=_("people"))
     programme = models.ForeignKey(Programme, verbose_name=_("programme"))
     summary = RichTextField(blank=True, verbose_name=_("summary"))
     issue_date = models.DateTimeField(

@@ -53,7 +53,7 @@ setup(
         'Topic :: Software Development :: Libraries :: Application Frameworks',
     ],
     install_requires=[
-        'Django<1.9',
+        'Django',
         'Pillow',
         'django-bootstrap3',
         'django-bower',

@@ -18,7 +18,7 @@
 import re
 
 from django import forms
-from django.conf.urls import url, patterns
+from django.conf.urls import url
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
@@ -117,18 +117,15 @@ class SingletonProfileAdmin(admin.ModelAdmin):
             'app_name': self.model._meta.app_label,
             'model_name': self.model._meta.model_name,
         }
-        custom_urls = patterns('',
+        custom_urls = [
             url(r'^history/$',
                 self.admin_site.admin_view(self.history_view),
                 {'object_id': '-1'},
-                name='%s_history' % url_name_prefix
-            ),
+                name='%s_history' % url_name_prefix),
             url(r'^$',
                 self.admin_site.admin_view(self.change_view),
                 {'object_id': '-1'},
-                name='%s_change' % url_name_prefix
-            ),
-        )
+                name='%s_change' % url_name_prefix)]
         # By inserting the custom URLs first, we overwrite the standard URLs.
         return custom_urls + urls
 
