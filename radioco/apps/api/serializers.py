@@ -11,7 +11,7 @@ class ProgrammeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Programme
         fields = ('slug', 'name', 'synopsis', 'runtime', 'photo', 'language',
-                  'category', 'created_at', 'updated_at')
+                  'website', 'category', 'created_at', 'updated_at')
 
 
 class EpisodeSerializer(serializers.ModelSerializer):

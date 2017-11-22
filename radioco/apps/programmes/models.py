@@ -91,6 +91,7 @@ class Programme(models.Model):
     category = models.CharField(
         blank=True, null=True, max_length=50, choices=CATEGORY_CHOICES, verbose_name=_("category")
     )
+    website = models.URLField(blank=True)
     slug = models.SlugField(max_length=100, unique=True)
     _runtime = models.PositiveIntegerField(
         validators=[MinValueValidator(1)], verbose_name=_("runtime"), help_text=_("In minutes."))

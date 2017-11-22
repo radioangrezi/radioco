@@ -33,6 +33,7 @@ class ProgrammeModelTests(TestCase):
         self.programme = Programme.objects.create(
             name="Test programme",
             synopsis="This is a description",
+            website="http://foo.example",
             _runtime=540,
             current_season=1)
 
@@ -61,6 +62,9 @@ class ProgrammeModelTests(TestCase):
         programme.runtime = 0
         with self.assertRaises(ValidationError):
             programme.clean_fields()
+
+    def test_website(self):
+        self.assertEqual(self.programme.website, "http://foo.example")
 
     def test_absolute_url(self):
         self.assertEqual(
@@ -93,9 +97,16 @@ class ProgrammeModelAdminTests(TestCase):
 
     def test_fieldset(self):
         ma = ModelAdmin(Programme, self.site)
-        self.assertEqual(
-            ma.get_fields(None), 
-            ['name', 'synopsis', 'photo', 'language', 'current_season', 'category', 'slug', '_runtime'])
+        self.assertEqual(ma.get_fields(None), [
+            'name',
+            'synopsis',
+            'photo',
+            'language',
+            'current_season',
+            'category',
+            'website',
+            'slug',
+            '_runtime'])
 
 
 class EpisodeManagerTests(TestDataMixin, TestCase):

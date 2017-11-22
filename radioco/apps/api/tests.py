@@ -22,7 +22,7 @@ class TestSerializers(TestDataMixin, TestCase):
         self.assertListEqual(
             serializer.data.keys(),
             ['slug', 'name', 'synopsis', 'runtime', 'photo', 'language',
-             'category', 'created_at', 'updated_at'])
+             'website', 'category', 'created_at', 'updated_at'])
 
     def test_programme_photo_url(self):
         serializer = serializers.ProgrammeSerializer(self.programme)

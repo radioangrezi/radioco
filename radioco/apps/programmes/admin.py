@@ -96,7 +96,9 @@ class NonStaffProgrammeAdmin(admin.ModelAdmin):
     inlines = [NonStaffRoleInline]
 
     def get_form(self, request, obj=None, **kwargs):
-        kwargs['fields'] = ['name', 'synopsis', 'category', 'current_season', 'photo', 'language', '_runtime']
+        kwargs['fields'] = [
+            'name', 'synopsis', 'category', 'current_season', 'photo',
+            'language', 'website', '_runtime']
         if not obj or request.user.has_perm('programmes.add_programme'):
             self.exclude = ['slug', ]
         else:
