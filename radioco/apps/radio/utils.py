@@ -126,7 +126,8 @@ def create_example_data():
                 Episode.objects.get_or_create(
                     title='Episode %s' % number,
                     programme=programme,
-                    summary=synopsis,
+                    summary="Summary Season {}, Number {}: {}".format(
+                        season, number, synopsis),
                     season=season,
                     number_in_season=number,
                 )

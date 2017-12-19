@@ -47,7 +47,9 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
 
 class TransmissionSerializer(serializers.Serializer):
-    name = serializers.CharField(max_length=100)
+    programme = serializers.CharField(max_length=100)
+    title = serializers.CharField(max_length=100)
+    summary = serializers.CharField()
     slug =serializers.SlugField(max_length=100)
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
