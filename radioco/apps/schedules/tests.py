@@ -209,26 +209,63 @@ class TransmissionModelTests(TestDataMixin, TestCase):
         self.transmission = Transmission(
             self.schedule, datetime.datetime(2015, 1, 6, 14, 0, 0))
 
-    def test_name(self):
-        self.assertEqual(
-            self.transmission.name, self.schedule.programme.name)
+    def test_nonexistent_date(self):
+        with self.assertRaises(ValueError):
+            Transmission(self.schedule,
+                         datetime.datetime(2015, 1, 6, 14, 30, 0))
+
+    def test_programme(self):
+        self.assertEqual(self.transmission.programme,
+                         self.transmission.schedule.programme.name)
 
     def test_start(self):
-        self.assertEqual(
-            self.transmission.start, datetime.datetime(2015, 1, 6, 14, 0, 0))
+        self.assertEqual(self.transmission.start,
+                         datetime.datetime(2015, 1, 6, 14, 0, 0))
 
     def test_end(self):
-        self.assertEqual(
-            self.transmission.end, datetime.datetime(2015, 1, 6, 15, 0, 0))
+        self.assertEqual(self.transmission.end,
+                         datetime.datetime(2015, 1, 6, 15, 0, 0))
 
     def test_slug(self):
-        self.assertEqual(
-            self.transmission.slug, self.schedule.programme.slug)
+        self.assertEqual(self.transmission.slug,
+                         self.transmission.schedule.programme.slug)
+
+    def test_summary(self):
+        self.assertEqual(self.transmission.summary,
+                         self.transmission.episode.summary)
+
+    def test_summary_nonexistent_episode(self):
+        transmission = Transmission(self.schedule,
+                                    datetime.datetime(2016, 1, 1, 14, 0))
+        self.assertEqual(transmission.summary, self.programme.synopsis)
+
+    def test_title(self):
+        self.assertEqual(self.transmission.title,
+                         self.transmission.episode.title)
+
+    def test_title_nonexistent_episode(self):
+        transmission = Transmission(self.schedule,
+                                    datetime.datetime(2016, 1, 1, 14, 0))
+        self.assertEqual(transmission.title,
+                         self.transmission.schedule.programme.name)
 
     def test_url(self):
-        self.assertEqual(
-            self.transmission.url,
-            reverse('programmes:detail', args=[self.schedule.programme.slug]))
+        self.assertEqual(self.transmission.url,
+                         reverse(
+                             'programmes:detail',
+                             args=[self.schedule.programme.slug]))
+
+    def test_get_or_create_existent_episode(self):
+        transmission = Transmission(self.schedule,
+                                    datetime.datetime(2015, 1, 1, 14, 0))
+        self.assertEqual(transmission._get_or_create_episode(), self.episode)
+
+    def test_get_or_create_nonexistent_episode(self):
+        transmission = Transmission(self.schedule,
+                                    datetime.datetime(2016, 1, 1, 14, 0))
+        episode = transmission._get_or_create_episode()
+        self.assertIsInstance(episode, Episode)
+        self.assertIsNone(episode.id)
 
     def test_at(self):
         now = Transmission.at(datetime.datetime(2015, 1, 6, 14, 30, 0))
@@ -237,25 +274,13 @@ class TransmissionModelTests(TestDataMixin, TestCase):
             [(u'classic-hits', datetime.datetime(2015, 1, 6, 14, 0))])
 
     def test_between(self):
-        between = Transmission.between(
-            datetime.datetime(2015, 1, 6, 12, 0, 0),
-            datetime.datetime(2015, 1, 6, 17, 0, 0))
+        between = Transmission.between(datetime.datetime(2015, 1, 6, 12, 0, 0),
+                                       datetime.datetime(2015, 1, 6, 17, 0, 0))
         self.assertListEqual(
             map(lambda t: (t.slug, t.start), list(between)),
             [(u'the-best-wine', datetime.datetime(2015, 1, 6, 12, 0)),
              (u'local-gossips', datetime.datetime(2015, 1, 6, 13, 0)),
              (u'classic-hits', datetime.datetime(2015, 1, 6, 14, 0))])
-
-# XXX test query by another filter
-#    def test_between_by_queryset(self):
-#        between = Transmission.between(
-#            datetime.datetime(2015, 1, 6, 12, 0, 0),
-#            datetime.datetime(2015, 1, 6, 17, 0, 0),
-#            schedules=Schedule.objects.filter(
-#                schedule_board=self.another_board).all())
-#        self.assertListEqual(
-#            map(lambda t: (t.slug, t.start), list(between)),
-#            [(u'classic-hits', datetime.datetime(2015, 1, 6, 16, 30, 0))])
 
 
 class ScheduleUtilsTests(TestDataMixin, TestCase):

@@ -50,15 +50,21 @@ class TestSerializers(TestDataMixin, TestCase):
             'programme': u'classic-hits'})
 
     def test_transmission(self):
-        serializer = serializers.TransmissionSerializer(Transmission(
-            self.schedule, datetime.datetime(2015, 1, 6, 14, 0, 0)))
-        self.assertDictEqual(serializer.data, {
-            'start': '2015-01-06T14:00:00',
-            'end': '2015-01-06T15:00:00',
-            'schedule': 5,
-            'name': u'Classic hits',
-            'slug': u'classic-hits',
-            'url': u'/programmes/classic-hits/'})
+        serializer = serializers.TransmissionSerializer(
+            Transmission(self.schedule,
+                         datetime.datetime(2015, 1, 6, 14, 0, 0)))
+        data = serializer.data
+
+        for key in ['start', 'end', 'schedule', 'programme', 'title', 'slug',
+                    'url', 'summary']:
+            self.assertIn(key, data)
+
+        self.assertEqual(data['start'], '2015-01-06T14:00:00')
+        self.assertEqual(data['schedule'], 5)
+        self.assertEqual(data['programme'], u'Classic hits')
+        self.assertEqual(data['title'], u'Episode 1')
+        self.assertEqual(data['slug'], u'classic-hits')
+        self.assertEqual(data['url'], u'/programmes/classic-hits/')
 
 
 class TestAPI(TestDataMixin, APITestCase):

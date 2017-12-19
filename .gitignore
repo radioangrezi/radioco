@@ -32,6 +32,7 @@ env/
 venv/
 build/
 dist/
+share/
 django_radio.egg-info/
 radioco.egg-info/
 sitepackages/

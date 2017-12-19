@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from radioco.apps.programmes.models import Programme
+from radioco.apps.programmes.models import Episode, Programme
 from dateutil import rrule
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
@@ -151,30 +151,6 @@ class Schedule(models.Model):
 
 # XXX entry point for transmission details (episode, recordings, ...)
 class Transmission(object):
-    def __init__(self, schedule, date):
-        self.schedule = schedule
-        self.start = date
-
-    @property
-    def programme(self):
-        return self.schedule.programme
-
-    @property
-    def name(self):
-        return self.programme.name
-
-    @property
-    def end(self):
-        return self.start + self.schedule.runtime
-
-    @property
-    def slug(self):
-        return self.programme.slug
-
-    @property
-    def url(self):
-        return reverse('programmes:detail', args=[self.programme.slug])
-
     @classmethod
     def at(cls, at):
         # XXX filter schedule start / end
@@ -195,65 +171,45 @@ class Transmission(object):
             for date in schedule.dates_between(after, before):
                 yield cls(schedule, date)
 
-#def __get_events(after, before, json_mode=False):
-#    background_colours = {"L": "#F9AD81", "B": "#C4DF9B", "S": "#8493CA"}
-#    text_colours = {"L": "black", "B": "black", "S": "black"}
-#
-#    next_schedules, next_dates = Schedule.between(after=after, before=before)
-#    schedules = []
-#    dates = []
-#    episodes = []
-#    event_list = []
-#    for x in range(len(next_schedules)):
-#        for y in range(len(next_dates[x])):
-#            # next_events.append([next_schedules[x], next_dates[x][y]])
-#            schedule = next_schedules[x]
-#            schedules.append(schedule)
-#            date = next_dates[x][y]
-#            dates.append(date)
-#
-#            episode = None
-#            # if schedule == live
-#            if next_schedules[x].type == 'L':
-#                try:
-#                    episode = Episode.objects.get(issue_date=date)
-#                except Episode.DoesNotExist:
-#                    pass
-#            # broadcast
-#            elif next_schedules[x].source:
-#                try:
-#                    source_date = next_schedules[x].source.date_before(date)
-#                    if source_date:
-#                        episode = Episode.objects.get(issue_date=source_date)
-#                except Episode.DoesNotExist:
-#                    pass
-#            episodes.append(episode)
-#
-#            if episode:
-#                url = reverse(
-#                    'programmes:episode_detail',
-#                    args=(schedule.programme.slug, episode.season, episode.number_in_season,)
-#                )
-#            else:
-#                url = reverse('programmes:detail', args=(schedule.programme.slug,))
-#
-#            event_entry = {
-#                'id': schedule.id,
-#                'start': str(date),
-#                'end': str(date + schedule.runtime),
-#                'allDay': False,
-#                'title':  schedule.programme.name,
-#                'type': schedule.type,
-#                'textColor': text_colours[schedule.type],
-#                'backgroundColor': background_colours[schedule.type],
-#                'url': url
-#            }
-#            event_list.append(event_entry)
-#
-#    if json_mode:
-#        return event_list
-#    else:
-#        if schedules:
-#            dates, schedules, episodes = (list(t) for t in zip(*sorted(zip(dates, schedules, episodes))))
-#            return zip(schedules, dates, episodes)
-#        return None
+    def __init__(self, schedule, date):
+        if not schedule.date_before(date) == date:
+            raise ValueError("no scheduled transmission on given date")
+
+        self.schedule = schedule
+        self.start = date
+        self.episode = self._get_or_create_episode()
+
+    @property
+    def programme(self):
+        return self.schedule.programme.name
+
+    @property
+    def end(self):
+        return self.start + self.schedule.runtime
+
+    @property
+    def slug(self):
+        return self.schedule.programme.slug
+
+    @property
+    def summary(self):
+        return self.episode.summary
+
+    @property
+    def title(self):
+        return self.episode.title
+
+    @property
+    def url(self):
+        return reverse(
+            'programmes:detail', args=[self.schedule.programme.slug])
+
+    def _get_or_create_episode(self):
+        try:
+            return Episode.objects.get(
+                programme=self.schedule.programme, issue_date=self.start)
+        except Episode.DoesNotExist:
+            return Episode(
+                # XXX switch to programme = self.programme
+                title=self.schedule.programme.name,
+                summary=self.schedule.programme.synopsis)
