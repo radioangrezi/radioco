@@ -33,7 +33,8 @@ import django.utils.timezone
 EMISSION_TYPE = (
     ("L", _("live")),
     ("B", _("broadcast")),
-    ("S", _("broadcast syndication"))
+    ("S", _("broadcast syndication")),
+    ("R", _("repetition"))
 )
 
 MO = 0
@@ -200,12 +201,23 @@ class Transmission(object):
         return self.episode.title
 
     @property
+    def type(self):
+        return self.schedule.type
+
+    @property
     def url(self):
         return reverse(
             'programmes:detail', args=[self.schedule.programme.slug])
 
     def _get_or_create_episode(self):
         try:
+            # XXX do not use sting
+            if self.schedule.type == 'R':
+                _episodes = Episode.objects.filter(
+                    programme=self.schedule.programme,
+                    issue_date__lt=self.start)
+                return _episodes.latest('issue_date')
+
             return Episode.objects.get(
                 programme=self.schedule.programme, issue_date=self.start)
         except Episode.DoesNotExist:

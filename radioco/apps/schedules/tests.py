@@ -260,6 +260,15 @@ class TransmissionModelTests(TestDataMixin, TestCase):
                                     datetime.datetime(2015, 1, 1, 14, 0))
         self.assertEqual(transmission._get_or_create_episode(), self.episode)
 
+    def test_get_or_create_repetition_episode(self):
+        transmission = Transmission(
+            Schedule(programme=self.programme, type='R',
+                     recurrences=recurrence.Recurrence(
+                         dtstart=datetime.datetime(2015, 1, 1, 14, 30))),
+            datetime.datetime(2015, 1, 1, 14, 30))
+        self.assertEqual(transmission._get_or_create_episode(), self.episode)
+
+
     def test_get_or_create_nonexistent_episode(self):
         transmission = Transmission(self.schedule,
                                     datetime.datetime(2016, 1, 1, 14, 0))

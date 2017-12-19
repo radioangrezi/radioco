@@ -53,11 +53,19 @@ def create_example_data():
         dtstart=datetime.datetime(2015, 1, 1, 8, 0, 0),
         rrules=[recurrence.Rule(recurrence.DAILY)])
 
+    recurrences_repetition = recurrence.Recurrence(
+        dtstart=datetime.datetime(2015, 1, 1, 20, 0, 0),
+        rrules=[recurrence.Rule(recurrence.DAILY)])
 
     Schedule.objects.get_or_create(
         programme=programme,
         type='L',
         recurrences=recurrences)
+
+    Schedule.objects.get_or_create(
+        programme=programme,
+        type='R',
+        recurrences=recurrences_repetition)
 
     for number in range(1, 4):
         episode, created = Episode.objects.get_or_create(
