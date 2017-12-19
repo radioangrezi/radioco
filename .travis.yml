@@ -9,4 +9,4 @@ install:
   - buildout
 
 script:
-  - radioco-admin test
+  - ./bin/radioco-admin test
