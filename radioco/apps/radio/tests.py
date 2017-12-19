@@ -30,7 +30,7 @@ class TestDataMixin(object):
     @classmethod
     def setUpTestData(cls):
         utils.create_example_data()
-        cls.programme = Programme.objects.filter(name="Classic hits").get()
+        cls.programme = Programme.objects.get(name="Classic hits")
         cls.schedule = cls.programme.schedule_set.first()
         cls.episode = cls.programme.episode_set.first()
 

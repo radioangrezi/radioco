@@ -146,14 +146,15 @@
                         end: schedule.end,
                         type: schedule.type,
                         source: schedule.source,
-                        backgroundColor: function() {
+                        backgroundColor: function(t) {
                           var BackgroundColor = Object.freeze({
-                            L: "#F9AD81",
-                            B: "#C4DF9B",
-                            S: "#8493CA"
+                            L: "#65321e",
+                            B: "#243238",
+                            S: "#586266",
+                            R: "#6a6451"
                           });
-                          return BackgroundColor[schedule.type];
-                        }(),
+                          return BackgroundColor[t];
+                        }(schedule.type),
                         url: "{% url 'admin:schedules_schedule_changelist' %}" + schedule.id,
                       };
                       return event;
@@ -172,9 +173,19 @@
                     eventDataTransform: function(transmission) {
                       var event = {
                         id: transmission.slug,
-                        title: transmission.name,
+                        title: transmission.programme,
                         start: transmission.start,
                         end: transmission.end,
+                        textColor: "#333333",
+                        backgroundColor: function(t) {
+                          var BackgroundColor = Object.freeze({
+                            L: "#dd6e42",
+                            B: "#4f6d7a",
+                            S: "#c0d6df",
+                            R: "#e8dab2"
+                          });
+                          return BackgroundColor[t];
+                        }(transmission.type),
                         url: "{% url 'admin:schedules_schedule_changelist' %}" + transmission.schedule
                       };
                       return event;
@@ -295,6 +306,10 @@
                 <label for="broadcast-syn" class="grp-row">
                     <input type="radio" name="group1" id="broadcast-syn" value="S">
                     {% trans "broadcast syndication" %}
+                </label>
+                <label for="repetition" class="grp-row">
+                    <input type="radio" name="group1" id="repetition" value="R">
+                    {% trans "repetition" %}
                 </label>
             </div>
         </div>

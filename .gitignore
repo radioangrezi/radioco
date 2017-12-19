@@ -3,12 +3,10 @@ radioco/media/_versions/
 radioco/components/
 radioco/static/
 
-# bower
-node_modules/
-
 # bower / js libs
 node_modules/
 radioco/components/
+package-lock.json
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -46,7 +46,8 @@ class TestSerializers(TestDataMixin, TestCase):
             'title': u'Classic hits', 'source': None,
             'start': '2015-01-01T14:00:00',
             'end': datetime.datetime(2015, 1, 1, 15, 0),
-            'type': 'L', 'id': 5,
+            'type': 'L',
+            'id': 6,
             'programme': u'classic-hits'})
 
     def test_transmission(self):
@@ -56,15 +57,16 @@ class TestSerializers(TestDataMixin, TestCase):
         data = serializer.data
 
         for key in ['start', 'end', 'schedule', 'programme', 'title', 'slug',
-                    'url', 'summary']:
+                    'url', 'summary', 'type']:
             self.assertIn(key, data)
 
         self.assertEqual(data['start'], '2015-01-06T14:00:00')
-        self.assertEqual(data['schedule'], 5)
+        self.assertEqual(data['schedule'], 6)
         self.assertEqual(data['programme'], u'Classic hits')
         self.assertEqual(data['title'], u'Episode 1')
         self.assertEqual(data['slug'], u'classic-hits')
         self.assertEqual(data['url'], u'/programmes/classic-hits/')
+        self.assertEqual(data['type'], u'L')
 
 
 class TestAPI(TestDataMixin, APITestCase):
@@ -164,15 +166,6 @@ class TestAPI(TestDataMixin, APITestCase):
         response = self.client.post('/api/2/schedules')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-#    def test_schedules_post_authenticated(self):
-#        self.client.login(username="klaus", password="topsecret")
-#        data = {
-#            "programme": self.programme.id,
-#            "schedule_board": self.schedule_board.id,
-#            "start": "2015-01-01T07:30:00", "type": "L"}
-#        response = self.client.post('/api/2/schedules', data)
-#        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
     @mock.patch('django.utils.timezone.now', mock_now)
     def test_transmissions(self):
         response = self.client.get('/api/2/transmissions')
@@ -194,7 +187,7 @@ class TestAPI(TestDataMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             sorted(response.data, key=lambda t: t['start'])[-1]['start'],
-            '2015-01-14T14:00:00')
+            '2015-01-14T20:00:00')
 
     @mock.patch('django.utils.timezone.now', mock_now)
     def test_transmission_now(self):
