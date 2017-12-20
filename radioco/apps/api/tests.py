@@ -61,13 +61,14 @@ class TestSerializers(TestDataMixin, TestCase):
             context={'request': None})
         data = serializer.data
 
-        self.assertListEqual(
-            data.keys(), ['start', 'end', 'type', 'programme', 'episode'])
+        self.assertListEqual( data.keys(), [
+            'start', 'end', 'type', 'programme', 'episode', 'schedule'])
 
         self.assertEqual(data['start'], '2015-01-06T14:00:00')
         self.assertEqual(data['programme']['name'], u'Classic hits')
         self.assertEqual(data['episode']['title'], u'Episode 1')
         self.assertEqual(data['type'], u'L')
+        self.assertEqual(data['schedule'], 6)
 
 
 class TestAPI(TestDataMixin, APITestCase):

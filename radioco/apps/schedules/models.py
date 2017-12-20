@@ -175,6 +175,9 @@ class Transmission(object):
         if not schedule.date_before(date) == date:
             raise ValueError("no scheduled transmission on given date")
 
+        # we need to track the schedule id for admin calendar
+        self.schedule = schedule
+
         self.programme = schedule.programme
         self.type = schedule.type
         self.start = date

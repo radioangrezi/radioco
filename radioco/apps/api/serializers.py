@@ -58,3 +58,4 @@ class TransmissionSerializer(serializers.Serializer):
     type = serializers.CharField(max_length=1)
     programme = ProgrammeSerializer()
     episode = EpisodeSerializer()
+    schedule = serializers.PrimaryKeyRelatedField(read_only=True)
