@@ -4,23 +4,27 @@ from rest_framework import serializers
 import datetime
 
 
-class ProgrammeSerializer(serializers.ModelSerializer):
+class ProgrammeSerializer(serializers.HyperlinkedModelSerializer):
     runtime = serializers.DurationField()
     photo = serializers.ImageField()
+    url = serializers.HyperlinkedIdentityField(
+        view_name='api:programme-detail', lookup_field='slug')
 
     class Meta:
         model = Programme
-        fields = ('slug', 'name', 'synopsis', 'runtime', 'photo', 'language',
-                  'website', 'category', 'created_at', 'updated_at')
+        fields = ('name', 'synopsis', 'runtime', 'photo', 'language',
+                  'website', 'category', 'created_at', 'updated_at', 'url')
 
 
-class EpisodeSerializer(serializers.ModelSerializer):
-    programme = serializers.SlugRelatedField(
-        slug_field='slug', queryset=Programme.objects.all())
+class EpisodeSerializer(serializers.HyperlinkedModelSerializer):
+    programme = serializers.HyperlinkedRelatedField(
+        view_name='api:programme-detail', lookup_field='slug', read_only=True)
+    url = serializers.HyperlinkedIdentityField(view_name='api:episode-detail')
+
     class Meta:
         model = Episode
-        fields = ('title', 'programme', 'summary', 'issue_date', 'season',
-                  'number_in_season', 'created_at', 'updated_at')
+        fields = ('programme', 'title', 'summary', 'issue_date', 'season',
+                  'number_in_season', 'created_at', 'updated_at', 'url')
 
 
 class ScheduleSerializer(serializers.ModelSerializer):

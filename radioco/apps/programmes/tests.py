@@ -176,10 +176,6 @@ class EpisodeModelTests(TestCase):
     def test_runtime(self):
         self.assertEqual(self.episode.runtime, datetime.timedelta(0, 32400))
 
-    def test_absoulte_url(self):
-        self.assertEqual(
-            self.episode.get_absolute_url(), "/programmes/test-programme/8x1/")
-
     def test_created_at(self):
         self.assertEqual(self.episode.created_at,
                          datetime.datetime(2014, 1, 1, 13, 30, 0, 0))

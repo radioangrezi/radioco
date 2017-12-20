@@ -3,12 +3,10 @@ from radioco.apps.schedules.models import Schedule, Transmission
 from django import forms
 from django import utils
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, permissions, viewsets
+from rest_framework import permissions, viewsets
 from rest_framework.decorators import list_route
-from rest_framework.parsers import JSONParser, FormParser
 from rest_framework.response import Response
 import datetime
-import django_filters
 import serializers
 
 
@@ -18,34 +16,14 @@ class ProgrammeViewSet(viewsets.ReadOnlyModelViewSet):
     lookup_field = 'slug'
 
 
-class EpisodeFilter(filters.FilterSet):
-    class Meta:
-        model = Episode
-        fields = ('programme',)
-
-    programme = django_filters.CharFilter(name="programme__slug")
-
-
 class EpisodeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Episode.objects.all()
-    filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = EpisodeFilter
     serializer_class = serializers.EpisodeSerializer
-
-
-class ScheduleFilter(filters.FilterSet):
-    class Meta:
-        model = Schedule
-        fields = ('programme', 'type')
-
-    programme = django_filters.CharFilter(name="programme__slug")
 
 
 class ScheduleViewSet(viewsets.ModelViewSet):
     permission_classes = (permissions.DjangoModelPermissionsOrAnonReadOnly,)
     queryset = Schedule.objects.all()
-    filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = ScheduleFilter
     serializer_class = serializers.ScheduleSerializer
 
 
@@ -69,8 +47,6 @@ class TransmissionForm(forms.Form):
 
 class TransmissionViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Schedule.objects.all()
-    filter_backends = (filters.DjangoFilterBackend,)
-    filter_class = ScheduleFilter
     serializer_class = serializers.TransmissionSerializer
 
     def list(self, request, *args, **kwargs):
