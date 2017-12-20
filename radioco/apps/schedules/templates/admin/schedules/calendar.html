@@ -172,8 +172,8 @@
                     },
                     eventDataTransform: function(transmission) {
                       var event = {
-                        id: transmission.slug,
-                        title: transmission.programme,
+                        id: transmission.programme.url,
+                        title: transmission.programme.name,
                         start: transmission.start,
                         end: transmission.end,
                         textColor: "#333333",
@@ -195,7 +195,7 @@
                   } ],
                 droppable: true, // this allows things to be dropped onto the calendar !!!
                 drop: function (date) { // this function is called when something is dropped
-                  var programme = $(this).data('slug');
+                  var id = $(this).data('id');
                   var type = $("input[name='group1']:checked").val();
 
                   // create the event 
@@ -204,7 +204,7 @@
                       url: "{% url 'api:schedule-list' %}",
                       contentType: 'application/json',
                       data: JSON.stringify({
-                          programme: programme,
+                          programme: id,
                           start: date,
                           type: type
                       }),
@@ -254,7 +254,7 @@
 
                         $("<div>").append(programme.name)
                             .addClass("programme grp-row")
-                            .data('slug', programme.slug)
+                            .data('id', programme.url)
                             .data('title', programme.name)
                             .data('runtime', programme.runtime)
                             .draggable({

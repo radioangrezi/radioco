@@ -20,8 +20,8 @@
                     <div class="col-lg-8 col-lg-offset-2">
                         <h1>{% trans "On air"|upper %}</h1>
                         <h3>
-                            <a href="{% url 'programmes:detail' transmission.slug %}">
-                                {{ transmission.name }}
+                            <a href="{% url 'programmes:detail' transmission.programme.slug %}">
+                                {{ transmission.programme.name }}
                             </a>
                         </h3>
                         <h5>
@@ -37,7 +37,7 @@
                         </div>
                     </div>
                     <div class="col-lg-8 col-lg-offset-2 himg">
-                        <a href="{% url 'programmes:detail' transmission.slug %}">
+                        <a href="{% url 'programmes:detail' transmission.programme.slug %}">
                             <img src="{{ transmission.programme.photo.url }}" class="img-responsive img-thumbnail">
                         </a>
                     </div>

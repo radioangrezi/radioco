@@ -150,7 +150,6 @@ class Schedule(models.Model):
         self.recurrences.exdates = map(fix_rdate, self.recurrences.exdates)
 
 
-# XXX entry point for transmission details (episode, recordings, ...)
 class Transmission(object):
     @classmethod
     def at(cls, at):
@@ -176,52 +175,26 @@ class Transmission(object):
         if not schedule.date_before(date) == date:
             raise ValueError("no scheduled transmission on given date")
 
+        # we need to track the schedule id for admin calendar
         self.schedule = schedule
+
+        self.programme = schedule.programme
+        self.type = schedule.type
         self.start = date
+        self.end = date + self.programme.runtime
+
         self.episode = self._get_or_create_episode()
-
-    @property
-    def programme(self):
-        return self.schedule.programme.name
-
-    @property
-    def end(self):
-        return self.start + self.schedule.runtime
-
-    @property
-    def slug(self):
-        return self.schedule.programme.slug
-
-    @property
-    def summary(self):
-        return self.episode.summary
-
-    @property
-    def title(self):
-        return self.episode.title
-
-    @property
-    def type(self):
-        return self.schedule.type
-
-    @property
-    def url(self):
-        return reverse(
-            'programmes:detail', args=[self.schedule.programme.slug])
 
     def _get_or_create_episode(self):
         try:
             # XXX do not use sting
-            if self.schedule.type == 'R':
+            if self.type == 'R':
                 _episodes = Episode.objects.filter(
-                    programme=self.schedule.programme,
+                    programme=self.programme,
                     issue_date__lt=self.start)
                 return _episodes.latest('issue_date')
 
             return Episode.objects.get(
-                programme=self.schedule.programme, issue_date=self.start)
+                programme=self.programme, issue_date=self.start)
         except Episode.DoesNotExist:
-            return Episode(
-                # XXX switch to programme = self.programme
-                title=self.schedule.programme.name,
-                summary=self.schedule.programme.synopsis)
+            return None

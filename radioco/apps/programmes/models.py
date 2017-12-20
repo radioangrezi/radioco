@@ -203,9 +203,6 @@ class Episode(models.Model):
     def runtime(self):
         return self.programme.runtime
 
-    def get_absolute_url(self):
-        return reverse('programmes:episode_detail', args=[self.programme.slug, self.season, self.number_in_season])
-
     def __unicode__(self):
         if self.title:
             return u"%sx%s %s" % (self.season, self.number_in_season, self.title)
