@@ -53,8 +53,8 @@
                   endParam: 'before',
                   eventDataTransform: function(transmission) {
                     var event = {
-                      id: transmission.slug,
-                      title: transmission.name,
+                      id: transmission.programme.url,
+                      title: transmission.programme.name,
                       start: transmission.start,
                       end: transmission.end
                     };

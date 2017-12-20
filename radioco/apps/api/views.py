@@ -45,11 +45,11 @@ class TransmissionForm(forms.Form):
         return before
 
 
-class TransmissionViewSet(viewsets.ReadOnlyModelViewSet):
+class TransmissionViewSet(viewsets.GenericViewSet):
     queryset = Schedule.objects.all()
     serializer_class = serializers.TransmissionSerializer
 
-    def list(self, request, *args, **kwargs):
+    def list(self, request):
         data = TransmissionForm(request.query_params)
         data.is_valid()
 
@@ -57,15 +57,15 @@ class TransmissionViewSet(viewsets.ReadOnlyModelViewSet):
             datetime.datetime.combine(
                 data.cleaned_data.get('after'), datetime.time(0)),
             datetime.datetime.combine(
-                data.cleaned_data.get('before'), datetime.time(23, 59, 59)),
-            schedules=self.filter_queryset(self.get_queryset()))
-        serializer = self.serializer_class(transmissions, many=True)
+                data.cleaned_data.get('before'), datetime.time(23, 59, 59)))
+        serializer = self.get_serializer(
+            transmissions, many=True, context={'request': request})
         return Response(serializer.data)
 
     @list_route()
     def now(self, request):
         now = utils.timezone.now()
         transmissions = Transmission.at(now)
-        serializer = serializers.TransmissionSerializer(
-            transmissions, many=True)
+        serializer = self.get_serializer(
+            transmissions, many=True, context={'request': request})
         return Response(serializer.data)

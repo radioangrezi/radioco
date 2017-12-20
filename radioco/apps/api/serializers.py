@@ -28,16 +28,18 @@ class EpisodeSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ScheduleSerializer(serializers.ModelSerializer):
+    programme = serializers.HyperlinkedRelatedField(
+        view_name='api:programme-detail',
+        lookup_field='slug',
+        queryset=Programme.objects.all())
     title = serializers.SerializerMethodField()
-    programme = serializers.SlugRelatedField(
-        slug_field='slug', queryset=Programme.objects.all())
     # XXX this is a bit hacky...
     start = serializers.DateTimeField(source='rr_start')
     end = serializers.SerializerMethodField()
 
     class Meta:
         model = Schedule
-        fields = ('id', 'programme', 'start', 'end', 'title', 'type','source')
+        fields = ('id', 'title', 'programme', 'start', 'end', 'type','source')
 
     def get_title(self, schedule):
         return schedule.programme.name
@@ -51,12 +53,8 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
 
 class TransmissionSerializer(serializers.Serializer):
-    programme = serializers.CharField(max_length=100)
-    title = serializers.CharField(max_length=100)
-    summary = serializers.CharField()
-    slug =serializers.SlugField(max_length=100)
     start = serializers.DateTimeField()
     end = serializers.DateTimeField()
-    schedule = serializers.IntegerField(source='schedule.id')
     type = serializers.CharField(max_length=1)
-    url = serializers.URLField()
+    programme = ProgrammeSerializer()
+    episode = EpisodeSerializer()

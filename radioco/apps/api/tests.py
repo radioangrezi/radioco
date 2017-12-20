@@ -52,24 +52,21 @@ class TestSerializers(TestDataMixin, TestCase):
             'end': datetime.datetime(2015, 1, 1, 15, 0),
             'type': 'L',
             'id': 6,
-            'programme': u'classic-hits'})
+            'programme': u'/api/2/programmes/classic-hits'})
 
     def test_transmission(self):
         serializer = serializers.TransmissionSerializer(
             Transmission(self.schedule,
-                         datetime.datetime(2015, 1, 6, 14, 0, 0)))
+                         datetime.datetime(2015, 1, 6, 14, 0, 0)),
+            context={'request': None})
         data = serializer.data
 
-        for key in ['start', 'end', 'schedule', 'programme', 'title', 'slug',
-                    'url', 'summary', 'type']:
-            self.assertIn(key, data)
+        self.assertListEqual(
+            data.keys(), ['start', 'end', 'type', 'programme', 'episode'])
 
         self.assertEqual(data['start'], '2015-01-06T14:00:00')
-        self.assertEqual(data['schedule'], 6)
-        self.assertEqual(data['programme'], u'Classic hits')
-        self.assertEqual(data['title'], u'Episode 1')
-        self.assertEqual(data['slug'], u'classic-hits')
-        self.assertEqual(data['url'], u'/programmes/classic-hits/')
+        self.assertEqual(data['programme']['name'], u'Classic hits')
+        self.assertEqual(data['episode']['title'], u'Episode 1')
         self.assertEqual(data['type'], u'L')
 
 
@@ -166,5 +163,5 @@ class TestAPI(TestDataMixin, APITestCase):
         response = self.client.get('/api/2/transmissions/now')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(
-            map(lambda t: (t['slug'], t['start']), response.data),
-            [(u'classic-hits', '2015-01-06T14:00:00')])
+            map(lambda t: (t['programme']['name'], t['start']), response.data),
+            [(u'Classic hits', '2015-01-06T14:00:00')])
