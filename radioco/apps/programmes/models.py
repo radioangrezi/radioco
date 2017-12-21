@@ -113,23 +113,23 @@ class Programme(models.Model):
         self.slug = slugify(self.name)
         super(Programme, self).save(*args, **kwargs)
 
-# XXX
-#    @classmethod
-#    def actives(cls, start_date, end_date=None):
-#        programme_list = cls.objects.filter(
-#            end_date__isnull=True
-#        ).order_by('-start_date') | cls.objects.filter(
-#            end_date__gte=start_date
-#        ).order_by('-start_date')
-#        if end_date:
-#            programme_list = programme_list.filter(start_date__lte=end_date)
-#        return programme_list
-
     def get_absolute_url(self):
         return reverse('programmes:detail', args=[self.slug])
 
     def __unicode__(self):
         return u"%s" % (self.name)
+
+
+class Slot(models.Model):
+    programme = models.ForeignKey(Programme, verbose_name=_("programme"))
+    runtime = models.DurationField(
+        verbose_name=_("runtime"), help_text=_("runtime in seconds"))
+
+    class Meta:
+        ordering = ["programme__name"]
+
+    def __unicode__(self):
+        return "{:s} ({:s})".format(self.programme.name, self.runtime)
 
 
 class EpisodeManager(models.Manager):
@@ -148,35 +148,36 @@ class EpisodeManager(models.Manager):
             episode.season = season
             episode.number_in_season = number_in_season
         else:
-            episode = Episode(
-                programme=programme, issue_date=date, season=season, number_in_season=number_in_season
-            )
+            episode = Episode(programme=programme,
+                              issue_date=date,
+                              season=season,
+                              number_in_season=number_in_season)
         episode.save()
         for role in Role.objects.filter(programme=programme):
-            Participant.objects.create(
-                person=role.person, episode=episode, role=role.role, description=role.description
-            )
+            Participant.objects.create(person=role.person,
+                                       episode=episode,
+                                       role=role.role,
+                                       description=role.description)
         return episode
 
     def last(self, programme):
-        return (programme.episode_set
-                .order_by("-season", "-number_in_season")
-                .first())
+        episodes = Episode.objects.filter(programme=programme)
+        return episodes.order_by("-season", "-number_in_season").first()
 
     def unfinished(self, programme, after=None):
         if not after:
             after = datetime.datetime.now()
 
-        episodes = (programme.episode_set
-                    .order_by("season", "number_in_season")
-                    .filter(Q(issue_date__gte=after) | Q(issue_date=None)))
-        for episode in episodes:
+        episodes = Episode.objects.filter(
+            Q(programme=programme) &
+            (Q(issue_date__gte=after) | Q(issue_date=None)))
+        for episode in episodes.order_by("season", "number_in_season"):
                 yield episode
 
 
 class Episode(models.Model):
     class Meta:
-        unique_together = (('season', 'number_in_season', 'programme'),)
+# XXX       unique_together = (('season', 'number_in_season', 'programme'),)
         verbose_name = _('episode')
         verbose_name_plural = _('episodes')
         permissions = (("see_all_episodes", "Can see all episodes"),)
@@ -204,9 +205,9 @@ class Episode(models.Model):
         return self.programme.runtime
 
     def __unicode__(self):
-        if self.title:
-            return u"%sx%s %s" % (self.season, self.number_in_season, self.title)
-        return u"%sx%s %s" % (self.season, self.number_in_season, self.programme)
+        return u"{:d}x{:d} {:s}".format(self.season,
+                                        self.number_in_season,
+                                        self.title or self.programme.name)
 
 
 class Participant(models.Model):

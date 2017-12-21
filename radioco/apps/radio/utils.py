@@ -1,10 +1,12 @@
-from radioco.apps.global_settings.models import SiteConfiguration
-from radioco.apps.programmes.models import Programme, Episode, Role, CONTRIBUTOR, Podcast
-from radioco.apps.schedules.models import Schedule, MO, TU, WE, TH, FR, SA, SU
-from radioco.apps.schedules.utils import rearrange_episodes
 from django.contrib.auth.models import User
 import datetime
 import recurrence
+
+from radioco.apps.global_settings.models import SiteConfiguration
+from radioco.apps.programmes.models import (
+    Programme, Episode, Role, CONTRIBUTOR, Podcast, Slot)
+from radioco.apps.schedules.models import Schedule, MO, TU, WE, TH, FR, SA, SU
+from radioco.apps.schedules.utils import rearrange_episodes
 
 
 def create_example_data():
@@ -49,6 +51,9 @@ def create_example_data():
         }
     )
 
+    slot, created = Slot.objects.get_or_create(
+        programme=programme, runtime=datetime.timedelta(minutes=60))
+
     recurrences = recurrence.Recurrence(
         dtstart=datetime.datetime(2015, 1, 1, 8, 0, 0),
         rrules=[recurrence.Rule(recurrence.DAILY)])
@@ -58,12 +63,10 @@ def create_example_data():
         rrules=[recurrence.Rule(recurrence.DAILY)])
 
     Schedule.objects.get_or_create(
-        programme=programme,
-        type='L',
-        recurrences=recurrences)
+        slot=slot, type='L', recurrences=recurrences)
 
     Schedule.objects.get_or_create(
-        programme=programme,
+        slot=slot,
         type='R',
         recurrences=recurrences_repetition)
 
@@ -119,13 +122,16 @@ def create_example_data():
             _runtime=60
         )
 
+        slot, created = Slot.objects.get_or_create(
+            programme=programme, runtime=datetime.timedelta(minutes=60))
+
         recurrences = recurrence.Recurrence(
             dtstart=(datetime.datetime(2015, 1, 1, 10, 0, 0) +
                 datetime.timedelta(hours=programme_counter)),
             rrules=[recurrence.Rule(recurrence.DAILY)])
 
         Schedule.objects.get_or_create(
-            programme=programme,
+            slot=slot,
             type='L',
             recurrences=recurrences)
 

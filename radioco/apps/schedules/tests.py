@@ -1,5 +1,5 @@
 # Radioco - Broadcasting Radio Recording Scheduling system.
-# Copyright (C) 2014  Iago Veloso Abalo
+# Copyright (C) 2014  Iago Veloso Abalo, Stefan Walluhn
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -14,38 +14,16 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from dateutil.relativedelta import relativedelta
-from django.contrib.auth.models import User, Permission
-from django.core.exceptions import ValidationError, FieldError
-from django.core.urlresolvers import reverse
-from django.db import models
-from django.db.models.signals import post_delete
-from django.forms import modelform_factory
+from django.core.exceptions import ValidationError
 from django.test import TestCase
 import datetime
 import mock
 import recurrence
 
-from radioco.apps.programmes.models import Programme, Episode
+from radioco.apps.programmes.models import Programme, Slot
 from radioco.apps.radio.tests import TestDataMixin, now
 from radioco.apps.schedules import utils
-from radioco.apps.schedules.models import MO, TU, WE, TH, FR, SA, SU
 from radioco.apps.schedules.models import Schedule, Transmission
-
-
-def mock_now():
-    return datetime.datetime(2014, 1, 1, 13, 30, 0)
-
-
-class ScheduleValidationTests(TestDataMixin, TestCase):
-    def test_fields(self):
-        schedule = Schedule()
-        with self.assertRaisesMessage(
-            ValidationError,
-            "'type': [u'This field cannot be blank.'], "
-            "'programme': [u'This field cannot be null.']}"):
-            schedule.clean_fields()
-
 
 
 class ScheduleModelTests(TestDataMixin, TestCase):
@@ -56,7 +34,7 @@ class ScheduleModelTests(TestDataMixin, TestCase):
             rrules=[recurrence.Rule(recurrence.WEEKLY)])
 
         self.schedule = Schedule.objects.create(
-            programme=self.programme,
+            slot=self.slot,
             type='L',
             recurrences=self.recurrences)
 
@@ -64,14 +42,11 @@ class ScheduleModelTests(TestDataMixin, TestCase):
         self.assertEqual(datetime.timedelta(hours=+1), self.schedule.runtime)
 
     def test_runtime_not_set(self):
-        schedule = Schedule(programme=Programme())
-        with self.assertRaises(FieldError):
-            schedule.runtime
+        schedule = Schedule(slot=Slot())
+        self.assertIsNone(schedule.runtime)
 
     def test_start_date_schedule_board_none(self):
-        schedule = Schedule(
-            recurrences=self.recurrences,
-            programme=Programme())
+        schedule = Schedule(recurrences=self.recurrences, slot=Slot())
         self.assertEqual(schedule.start, datetime.datetime(2014, 1, 6, 14, 0))
 
     def test_start(self):
@@ -85,7 +60,7 @@ class ScheduleModelTests(TestDataMixin, TestCase):
             datetime.datetime(2015, 1, 1, 14, 0, 0))
 
     def test_start_none(self):
-        schedule = Schedule(programme=Programme())
+        schedule = Schedule(slot=Slot())
         self.assertIsNone(schedule.start)
 
     def test_end(self):
@@ -93,7 +68,7 @@ class ScheduleModelTests(TestDataMixin, TestCase):
             self.schedule.end, datetime.datetime(2014, 1, 31, 14, 0, 0))
 
     def test_end_none(self):
-        schedule = Schedule(programme=Programme())
+        schedule = Schedule(slot=Slot())
         self.assertIsNone(schedule.end)
 
     def test_rr_start(self):
@@ -140,7 +115,7 @@ class ScheduleModelTests(TestDataMixin, TestCase):
 
     def test_dates_between_complex_ruleset(self):
         schedule = Schedule(
-            programme=Programme(name="Programme 14:00 - 15:00", runtime=60),
+            slot=Slot(runtime=datetime.timedelta(minutes=60)),
             recurrences=recurrence.Recurrence(
                 dtstart=datetime.datetime(2014, 1, 2, 14, 0, 0),
                 rrules=[recurrence.Rule(recurrence.DAILY, interval=2)],
@@ -159,7 +134,7 @@ class ScheduleModelTests(TestDataMixin, TestCase):
     # https://github.com/django-recurrence/django-recurrence/issues/94
     def test_dates_between_rdate(self):
         schedule = Schedule(
-            programme=Programme(name="Programme 14:00 - 15:00", runtime=60),
+            slot=Slot(runtime=datetime.timedelta(minutes=60)),
             recurrences=recurrence.Recurrence(
                 dtstart=datetime.datetime(2014, 1, 2, 14, 0, 0),
                 rrules=[recurrence.Rule(recurrence.DAILY, interval=2)],
@@ -178,7 +153,7 @@ class ScheduleModelTests(TestDataMixin, TestCase):
     # https://github.com/django-recurrence/django-recurrence/issues/94
     def test_dates_between_exdate(self):
         schedule = Schedule(
-            programme=Programme(name="Programme 14:00 - 15:00", runtime=60),
+            slot=Slot(runtime=datetime.timedelta(minutes=60)),
             recurrences=recurrence.Recurrence(
                 dtstart=datetime.datetime(2014, 1, 2, 14, 0, 0),
                 rrules=[recurrence.Rule(recurrence.DAILY)],
@@ -202,6 +177,13 @@ class ScheduleModelTests(TestDataMixin, TestCase):
         self.episode.refresh_from_db()
         self.assertEqual(
             self.episode.issue_date, datetime.datetime(2014, 1, 6, 14, 0))
+
+    def test_verification(self):
+        with self.assertRaisesMessage(
+            ValidationError,
+            "{'slot': [u'This field cannot be null.'], "
+            "'type': [u'This field cannot be blank.']}"):
+            Schedule().clean_fields()
 
 
 class TransmissionModelTests(TestDataMixin, TestCase):
@@ -232,7 +214,7 @@ class TransmissionModelTests(TestDataMixin, TestCase):
 
     def test_get_or_create_repetition_episode(self):
         transmission = Transmission(
-            Schedule(programme=self.programme, type='R',
+            Schedule(slot=self.slot, type='R',
                      recurrences=recurrence.Recurrence(
                          dtstart=datetime.datetime(2015, 1, 1, 14, 30))),
             datetime.datetime(2015, 1, 1, 14, 30))
@@ -264,7 +246,7 @@ class TransmissionModelTests(TestDataMixin, TestCase):
 class ScheduleUtilsTests(TestDataMixin, TestCase):
     def test_available_dates_after(self):
         Schedule.objects.create(
-            programme=self.programme,
+            slot=self.slot,
             type="L",
             recurrences= recurrence.Recurrence(
                 dtstart=datetime.datetime(2015, 1, 6, 16, 0, 0),
@@ -294,7 +276,7 @@ class ScheduleUtilsTests(TestDataMixin, TestCase):
 
     def test_rearrenge_episodes_new_schedule(self):
         Schedule.objects.create(
-            programme=self.programme,
+            slot=self.slot,
             type="L",
             recurrences= recurrence.Recurrence(
                 dtstart=datetime.datetime(2015, 1, 3, 16, 0, 0),

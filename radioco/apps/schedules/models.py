@@ -14,7 +14,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from radioco.apps.programmes.models import Episode, Programme
+from radioco.apps.programmes.models import Episode, Slot
 from dateutil import rrule
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
@@ -61,7 +61,7 @@ class Schedule(models.Model):
         verbose_name = _('schedule')
         verbose_name_plural = _('schedules')
 
-    programme = models.ForeignKey(Programme, verbose_name=_("programme"))
+    slot = models.ForeignKey(Slot, verbose_name=_("slot"))
     type = models.CharField(verbose_name=_("type"), choices=EMISSION_TYPE, max_length=1)
     recurrences = RecurrenceField(verbose_name=_("recurrences"))
     source = models.ForeignKey(
@@ -71,7 +71,7 @@ class Schedule(models.Model):
 
     @property
     def runtime(self):
-        return self.programme.runtime
+        return self.slot.runtime
 
     @property
     def start(self):
@@ -124,7 +124,8 @@ class Schedule(models.Model):
     def save(self, *args, **kwargs):
         import utils
         super(Schedule, self).save(*args, **kwargs)
-        utils.rearrange_episodes(self.programme, django.utils.timezone.now())
+        utils.rearrange_episodes(
+            self.slot.programme, django.utils.timezone.now())
 
     def _merge_before(self, before):
         if not self.end:
@@ -178,10 +179,10 @@ class Transmission(object):
         # we need to track the schedule id for admin calendar
         self.schedule = schedule
 
-        self.programme = schedule.programme
+        self.programme = schedule.slot.programme
         self.type = schedule.type
         self.start = date
-        self.end = date + self.programme.runtime
+        self.end = date + schedule.slot.runtime
 
         self.episode = self._get_or_create_episode()
 

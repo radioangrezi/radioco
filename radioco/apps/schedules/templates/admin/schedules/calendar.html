@@ -51,15 +51,15 @@
             $("#messages").slideDown();
         }
 
-        function searchProgramme() {
-          var search = document.getElementById("programmeSearch").value.toUpperCase();
-          var programmes = document.getElementById("programmes").getElementsByTagName('div');
+        function searchSlot() {
+          var search = document.getElementById("slotSearch").value.toUpperCase();
+          var slots = document.getElementById("slots").getElementsByTagName('div');
 
-          for (var i=0; i<programmes.length; i++) {
-            if (programmes[i].innerHTML.toUpperCase().indexOf(search) > -1) {
-              programmes[i].style.display = "";
+          for (var i=0; i<slots.length; i++) {
+            if (slots[i].innerHTML.toUpperCase().indexOf(search) > -1) {
+              slots[i].style.display = "";
             } else {
-              programmes[i].style.display = "none";
+              slots[i].style.display = "none";
             }
           }
         }
@@ -115,7 +115,7 @@
         });
 
         $(document).ready(function () {
-            reloadProgrammes();
+            reloadSlots();
 
             var calendar = $('#calendar').fullCalendar({
                 height: 'auto',
@@ -204,7 +204,7 @@
                       url: "{% url 'api:schedule-list' %}",
                       contentType: 'application/json',
                       data: JSON.stringify({
-                          programme: id,
+                          slot: id,
                           start: date,
                           type: type
                       }),
@@ -241,33 +241,33 @@
 
         });
 
-        function reloadProgrammes() {
-            $('#programmes').empty();
+        function reloadSlots() {
+            $('#slots').empty();
             $.getJSON({
-                url: "{% url 'api:programme-list' %}",
-                success: function(programmes) {
-                    programmes.sort(function(a, b) {
+                url: "{% url 'api:slot-list' %}",
+                success: function(slots) {
+                    slots.sort(function(a, b) {
                       return a.name > b.name;
                     });
-                    for (var i=0; i<programmes.length; i++) {
-                        var programme = programmes[i];
+                    for (var i=0; i<slots.length; i++) {
+                        var slot = slots[i];
 
-                        $("<div>").append(programme.name)
-                            .addClass("programme grp-row")
-                            .data('id', programme.url)
-                            .data('title', programme.name)
-                            .data('runtime', programme.runtime)
+                        $("<div>").append(slot.name)
+                            .addClass("slot grp-row")
+                            .data('id', slot.url)
+                            .data('title', slot.name)
+                            .data('runtime', slot.runtime)
                             .draggable({
                                 zIndex: 999,
                                 revert: true, // will cause the event to go back to its
                                 revertDuration: 0
                             })
-                            .appendTo('#programmes');
+                            .appendTo('#slots');
                     }
-                    info('{% trans "Programmes reloaded" %}');
+                    info('{% trans "Slots reloaded" %}');
                 },
                 error: function (data) {
-                    alert('{% trans "There was an error while reloding programmes" %}');
+                    alert('{% trans "There was an error while reloding slots" %}');
                 },
          });
         }
@@ -290,8 +290,8 @@
             <!-- <div class="grp-module" id='external-events'> -->
             <div class="grp-module">
                 <h3>{% trans "Programmes" %}</h3>
-                <input type="text" id="programmeSearch" class="grp-row" onkeyup="searchProgramme()" placeholder="Search for programme.." />
-                <span id="programmes" />
+                <input type="text" id="slotSearch" class="grp-row" onkeyup="searchSlot()" placeholder="Search for slot..." />
+                <span id="slots" />
             </div>
             <div class="grp-module">
                 <h3>{% trans "Emission type" %}</h3>

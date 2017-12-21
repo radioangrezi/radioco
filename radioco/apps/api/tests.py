@@ -30,6 +30,15 @@ class TestSerializers(TestDataMixin, TestCase):
         self.assertEqual(
             serializer.data['photo'], "/media/defaults/example/radio_5.jpg")
 
+    def test_slot(self):
+        serializer = serializers.SlotSerializer(
+            self.slot, context={'request': None})
+        self.assertDictEqual(serializer.data, dict(
+            name=u'Classic hits (1:00:00)',
+            runtime='01:00:00',
+            programme=u'/api/2/programmes/classic-hits',
+            url=u'/api/2/slots/5'))
+
     def test_episode(self):
         serializer = serializers.EpisodeSerializer(
             self.episode, context={'request': None})
@@ -46,13 +55,13 @@ class TestSerializers(TestDataMixin, TestCase):
     def test_schedule(self):
         serializer = serializers.ScheduleSerializer(
             self.schedule, context={'request': None})
-        self.assertDictEqual(serializer.data, {
-            'title': u'Classic hits', 'source': None,
-            'start': '2015-01-01T14:00:00',
-            'end': datetime.datetime(2015, 1, 1, 15, 0),
-            'type': 'L',
-            'id': 6,
-            'programme': u'/api/2/programmes/classic-hits'})
+        self.assertDictEqual(serializer.data, dict(
+            type='L', id=6,
+            slot=u'/api/2/slots/5',
+            title=u'Classic hits',
+            source=None,
+            start='2015-01-01T14:00:00',
+            end=datetime.datetime(2015, 1, 1, 15, 0)))
 
     def test_transmission(self):
         serializer = serializers.TransmissionSerializer(
@@ -101,6 +110,15 @@ class TestAPI(TestDataMixin, APITestCase):
 
     def test_programmes_delete(self):
         response = self.client.delete('/api/2/programmes')
+        self.assertEqual(
+            response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
+
+    def test_slots_get_all(self):
+        response = self.client.get('/api/2/slots')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+    def test_slots_post(self):
+        response = self.client.post('/api/2/slots')
         self.assertEqual(
             response.status_code, status.HTTP_405_METHOD_NOT_ALLOWED)
 

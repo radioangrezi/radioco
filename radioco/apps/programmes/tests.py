@@ -14,7 +14,8 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from radioco.apps.programmes.models import Programme, Episode, EpisodeManager, Role
+from radioco.apps.programmes.models import (
+    Programme, Episode, EpisodeManager, Role, Slot)
 from radioco.apps.radio.tests import TestDataMixin, now
 from django.contrib.admin.options import ModelAdmin
 from django.contrib.admin.sites import AdminSite
@@ -81,15 +82,6 @@ class ProgrammeModelTests(TestCase):
     def test_str(self):
         self.assertEqual(str(self.programme), "Test programme")
 
-#    def test_save_episode(self):
-#        date_published = datetime.datetime(2014, 1, 31, 0, 0, 0, 0)
-#        episode = Episode.create_episode(
-#            date=date_published, programme=self.programme)
-#
-#        self.assertEqual(episode, Episode.objects.get(id=episode.id))
-#        self.assertEqual(
-#            episode.programme, Programme.objects.get(id=episode.programme.id))
-
 
 class ProgrammeModelAdminTests(TestCase):
     def setUp(self):
@@ -124,9 +116,6 @@ class EpisodeManagerTests(TestDataMixin, TestCase):
 
     def test_number_in_season(self):
         self.assertEqual(self.episode.number_in_season, 6)
-
-    def test_programme(self):
-        self.assertEqual(self.episode.programme, self.programme)
 
     def test_issue_date(self):
         self.assertEqual(
@@ -168,10 +157,14 @@ class EpisodeModelTests(TestCase):
             current_season=8)
 
         self.episode = Episode.objects.create_episode(
-            datetime.datetime(2014, 1, 14, 10, 0, 0), self.programme)
+            datetime.datetime(2014, 1, 14, 10, 0, 0),
+            programme=self.programme)
 
     def test_model_manager(self):
         self.assertIsInstance(self.episode, Episode)
+
+    def test_programme(self):
+        self.assertEqual(self.episode.programme, self.programme)
 
     def test_runtime(self):
         self.assertEqual(self.episode.runtime, datetime.timedelta(0, 32400))
@@ -186,3 +179,34 @@ class EpisodeModelTests(TestCase):
     def test_str(self):
         self.assertEqual(str(self.episode), "8x1 Test programme")
 
+
+class SlotModelTests(TestCase):
+
+    def setUp(self):
+        self.programme = Programme.objects.create(
+            name="Test programme",
+            synopsis="This is a description",
+            _runtime=540,
+            current_season=8)
+
+        self.slot = Slot.objects.create(
+            programme=self.programme, runtime=datetime.timedelta(minutes=60))
+
+    def test_model_manager(self):
+        self.assertIsInstance(self.slot, Slot)
+
+    def test_programme(self):
+        self.assertEqual(self.slot.programme, self.programme)
+
+    def test_runtime(self):
+        self.assertEqual(self.slot.runtime, datetime.timedelta(minutes=60))
+
+    def test_validation(self):
+        with self.assertRaisesMessage(
+                ValidationError,
+                "{'runtime': [u'This field cannot be null.'], "
+                "'programme': [u'This field cannot be null.']}"):
+            Slot().clean_fields()
+
+    def test_str(self):
+        self.assertEqual(str(self.slot), "Test programme (1:00:00)")
