@@ -93,20 +93,8 @@ class Programme(models.Model):
     )
     website = models.URLField(blank=True)
     slug = models.SlugField(max_length=100, unique=True)
-    _runtime = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)], verbose_name=_("runtime"), help_text=_("In minutes."))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    @property
-    def runtime(self):
-        if not self._runtime:
-            raise FieldError(_('Runtime not set'))
-        return datetime.timedelta(minutes=self._runtime)
-
-    @runtime.setter
-    def runtime(self, value):
-        self._runtime = value
 
     # XXX form
     def save(self, *args, **kwargs):
@@ -198,11 +186,6 @@ class Episode(models.Model):
         validators=[MinValueValidator(1)], verbose_name=_("No. in season"))
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    # XXX this is not true for archived episodes
-    @property
-    def runtime(self):
-        return self.programme.runtime
 
     def __unicode__(self):
         return u"{:d}x{:d} {:s}".format(self.season,

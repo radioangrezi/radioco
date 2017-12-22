@@ -41,15 +41,12 @@ def create_example_data():
         when an unknown printer took a galley of type and scrambled it to make a type specimen book.
     '''
     programme, created = Programme.objects.get_or_create(
-        name='Morning News', defaults={
-            'synopsis': synopsis,
-            'language': 'en',
-            'photo': 'defaults/example/radio_1.jpg',
-            'current_season': 1,
-            'category': 'News & Politics',
-            '_runtime': 60,
-        }
-    )
+        name='Morning News', defaults=dict(
+            synopsis=synopsis,
+            language='en',
+            photo='defaults/example/radio_1.jpg',
+            current_season=1,
+            category='News & Politics',))
 
     slot, created = Slot.objects.get_or_create(
         programme=programme, runtime=datetime.timedelta(minutes=60))
@@ -118,9 +115,7 @@ def create_example_data():
             language='en',
             photo='defaults/example/radio_%s.jpg' % str(programme_counter + 1),
             current_season=7,
-            category='News & Politics',
-            _runtime=60
-        )
+            category='News & Politics',)
 
         slot, created = Slot.objects.get_or_create(
             programme=programme, runtime=datetime.timedelta(minutes=60))

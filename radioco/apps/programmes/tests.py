@@ -35,7 +35,6 @@ class ProgrammeModelTests(TestCase):
             name="Test programme",
             synopsis="This is a description",
             website="http://foo.example",
-            _runtime=540,
             current_season=1)
 
     def test_save_programme(self):
@@ -44,25 +43,6 @@ class ProgrammeModelTests(TestCase):
 
     def test_slug(self):
         self.assertEqual(self.programme.slug, "test-programme")
-
-    def test_runtime(self):
-        self.assertEqual(datetime.timedelta(hours=+9), self.programme.runtime)
-
-    def test_runtime_not_get(self):
-        programme = Programme(name="foo", current_season=1)
-        with self.assertRaises(FieldError):
-            programme.runtime
-
-    def test_runtime_not_set(self):
-        programme = Programme(name="foo", current_season=1, slug="foo")
-        with self.assertRaises(ValidationError):
-            programme.clean_fields()
-
-    def test_runtime_is_zero(self):
-        programme = Programme(name="foo", current_season=1, slug="foo")
-        programme.runtime = 0
-        with self.assertRaises(ValidationError):
-            programme.clean_fields()
 
     def test_website(self):
         self.assertEqual(self.programme.website, "http://foo.example")
@@ -90,15 +70,8 @@ class ProgrammeModelAdminTests(TestCase):
     def test_fieldset(self):
         ma = ModelAdmin(Programme, self.site)
         self.assertEqual(ma.get_fields(None), [
-            'name',
-            'synopsis',
-            'photo',
-            'language',
-            'current_season',
-            'category',
-            'website',
-            'slug',
-            '_runtime'])
+            'name', 'synopsis', 'photo', 'language', 'current_season',
+            'category', 'website', 'slug'])
 
 
 class EpisodeManagerTests(TestDataMixin, TestCase):
@@ -153,7 +126,6 @@ class EpisodeModelTests(TestCase):
         self.programme = Programme.objects.create(
             name="Test programme",
             synopsis="This is a description",
-            _runtime=540,
             current_season=8)
 
         self.episode = Episode.objects.create_episode(
@@ -165,9 +137,6 @@ class EpisodeModelTests(TestCase):
 
     def test_programme(self):
         self.assertEqual(self.episode.programme, self.programme)
-
-    def test_runtime(self):
-        self.assertEqual(self.episode.runtime, datetime.timedelta(0, 32400))
 
     def test_created_at(self):
         self.assertEqual(self.episode.created_at,
@@ -186,7 +155,6 @@ class SlotModelTests(TestCase):
         self.programme = Programme.objects.create(
             name="Test programme",
             synopsis="This is a description",
-            _runtime=540,
             current_season=8)
 
         self.slot = Slot.objects.create(

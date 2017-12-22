@@ -5,15 +5,14 @@ import datetime
 
 
 class ProgrammeSerializer(serializers.HyperlinkedModelSerializer):
-    runtime = serializers.DurationField()
     photo = serializers.ImageField()
     url = serializers.HyperlinkedIdentityField(
         view_name='api:programme-detail', lookup_field='slug')
 
     class Meta:
         model = Programme
-        fields = ('name', 'synopsis', 'runtime', 'photo', 'language',
-                  'website', 'category', 'created_at', 'updated_at', 'url')
+        fields = ('name', 'synopsis', 'photo', 'language', 'website',
+                  'category', 'created_at', 'updated_at', 'url')
 
 
 class SlotSerializer(serializers.HyperlinkedModelSerializer):
