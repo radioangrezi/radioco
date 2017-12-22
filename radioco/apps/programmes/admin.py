@@ -253,14 +253,19 @@ class PodcastInline(admin.StackedInline):
 
 
 class NonStaffEpisodeAdmin(admin.ModelAdmin):
-    list_display = ('__unicode__', 'issue_date')
+    list_display = (
+        'title', 'programme_', 'season', 'number_in_season', 'issue_date')
     list_select_related = True
     ordering = ['-season', '-number_in_season']
     list_filter = ['issue_date', OwnEpisodeProgrammeListFilter, OwnEpisodeIssueDateListFilter]
-    search_fields = ['programme__name']
+    search_fields = ['programme__name', 'title']
     inlines = [NonStaffParticipantInline, PodcastInline]
     fields = ['programme', 'title', 'summary', 'issue_date', 'season', 'number_in_season']
     form = NonStaffEpisodeAdminForm
+
+    def programme_(self, episode):
+        return episode.programme.name
+    programme_.admin_order_field = 'programme__name'
 
     def save_model(self, request, obj, form, change):
         if not obj.pk:
