@@ -22,6 +22,7 @@ def migrate_schedules_to_slots(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
+    atomic = False
 
     dependencies = [
         ('schedules', '0006_add_repetition_type'),
@@ -45,7 +46,7 @@ class Migration(migrations.Migration):
             field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='schedules.Slot', verbose_name='slot'),
             preserve_default=False,
         ),
-        migrations.RunPython(migrate_schedules_to_slots),
+        migrations.RunPython(migrate_schedules_to_slots, atomic=True),
         migrations.RemoveField(
             model_name='schedule',
             name='programme',
