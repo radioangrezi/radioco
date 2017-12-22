@@ -25,12 +25,12 @@ except ImportError:
 
 @admin.register(Slot)
 class SlotAdmin(admin.ModelAdmin):
-    list_display = ('_name', 'runtime')
+    list_display = ('name', 'runtime')
     list_filter = ('programme__name', 'runtime')
 
-    def _name(self, slot):
+    def name(self, slot):
         return slot.programme.name
-    _name.admin_order_field = 'programme__name'
+    name.admin_order_field = 'programme__name'
 
 
 @admin.register(Schedule)
