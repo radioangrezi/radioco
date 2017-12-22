@@ -1,10 +1,13 @@
-from radioco.apps.global_settings.models import SiteConfiguration
-from radioco.apps.programmes.models import Programme, Episode, Role, CONTRIBUTOR, Podcast
-from radioco.apps.schedules.models import Schedule, MO, TU, WE, TH, FR, SA, SU
-from radioco.apps.schedules.utils import rearrange_episodes
 from django.contrib.auth.models import User
 import datetime
 import recurrence
+
+from radioco.apps.global_settings.models import SiteConfiguration
+from radioco.apps.programmes.models import (
+    Programme, Episode, Role, CONTRIBUTOR, Podcast)
+from radioco.apps.schedules.models import (
+    Slot, Schedule, MO, TU, WE, TH, FR, SA, SU)
+from radioco.apps.schedules.utils import rearrange_episodes
 
 
 def create_example_data():
@@ -39,15 +42,15 @@ def create_example_data():
         when an unknown printer took a galley of type and scrambled it to make a type specimen book.
     '''
     programme, created = Programme.objects.get_or_create(
-        name='Morning News', defaults={
-            'synopsis': synopsis,
-            'language': 'en',
-            'photo': 'defaults/example/radio_1.jpg',
-            'current_season': 1,
-            'category': 'News & Politics',
-            '_runtime': 60,
-        }
-    )
+        name='Morning News', defaults=dict(
+            synopsis=synopsis,
+            language='en',
+            photo='defaults/example/radio_1.jpg',
+            current_season=1,
+            category='News & Politics',))
+
+    slot, created = Slot.objects.get_or_create(
+        programme=programme, runtime=datetime.timedelta(minutes=60))
 
     recurrences = recurrence.Recurrence(
         dtstart=datetime.datetime(2015, 1, 1, 8, 0, 0),
@@ -58,12 +61,10 @@ def create_example_data():
         rrules=[recurrence.Rule(recurrence.DAILY)])
 
     Schedule.objects.get_or_create(
-        programme=programme,
-        type='L',
-        recurrences=recurrences)
+        slot=slot, type='L', recurrences=recurrences)
 
     Schedule.objects.get_or_create(
-        programme=programme,
+        slot=slot,
         type='R',
         recurrences=recurrences_repetition)
 
@@ -115,9 +116,10 @@ def create_example_data():
             language='en',
             photo='defaults/example/radio_%s.jpg' % str(programme_counter + 1),
             current_season=7,
-            category='News & Politics',
-            _runtime=60
-        )
+            category='News & Politics',)
+
+        slot, created = Slot.objects.get_or_create(
+            programme=programme, runtime=datetime.timedelta(minutes=60))
 
         recurrences = recurrence.Recurrence(
             dtstart=(datetime.datetime(2015, 1, 1, 10, 0, 0) +
@@ -125,7 +127,7 @@ def create_example_data():
             rrules=[recurrence.Rule(recurrence.DAILY)])
 
         Schedule.objects.get_or_create(
-            programme=programme,
+            slot=slot,
             type='L',
             recurrences=recurrences)
 

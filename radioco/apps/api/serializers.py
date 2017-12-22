@@ -1,19 +1,32 @@
 from radioco.apps.programmes.models import Programme, Episode
-from radioco.apps.schedules.models import Schedule, Transmission
+from radioco.apps.schedules.models import Slot, Schedule, Transmission
 from rest_framework import serializers
 import datetime
 
 
 class ProgrammeSerializer(serializers.HyperlinkedModelSerializer):
-    runtime = serializers.DurationField()
     photo = serializers.ImageField()
     url = serializers.HyperlinkedIdentityField(
         view_name='api:programme-detail', lookup_field='slug')
 
     class Meta:
         model = Programme
-        fields = ('name', 'synopsis', 'runtime', 'photo', 'language',
-                  'website', 'category', 'created_at', 'updated_at', 'url')
+        fields = ('name', 'synopsis', 'photo', 'language', 'website',
+                  'category', 'created_at', 'updated_at', 'url')
+
+
+class SlotSerializer(serializers.HyperlinkedModelSerializer):
+    programme = serializers.HyperlinkedRelatedField(
+        view_name='api:programme-detail', lookup_field='slug', read_only=True)
+    name = serializers.SerializerMethodField()
+    url = serializers.HyperlinkedIdentityField(view_name='api:slot-detail')
+
+    class Meta:
+        model = Slot
+        fields = ('programme', 'name', 'runtime', 'url')
+
+    def get_name(self, slot):
+        return str(slot)
 
 
 class EpisodeSerializer(serializers.HyperlinkedModelSerializer):
@@ -28,10 +41,8 @@ class EpisodeSerializer(serializers.HyperlinkedModelSerializer):
 
 
 class ScheduleSerializer(serializers.ModelSerializer):
-    programme = serializers.HyperlinkedRelatedField(
-        view_name='api:programme-detail',
-        lookup_field='slug',
-        queryset=Programme.objects.all())
+    slot = serializers.HyperlinkedRelatedField(
+        view_name='api:slot-detail', queryset=Slot.objects.all())
     title = serializers.SerializerMethodField()
     # XXX this is a bit hacky...
     start = serializers.DateTimeField(source='rr_start')
@@ -39,10 +50,10 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Schedule
-        fields = ('id', 'title', 'programme', 'start', 'end', 'type','source')
+        fields = ('id', 'title', 'slot', 'start', 'end', 'type','source')
 
     def get_title(self, schedule):
-        return schedule.programme.name
+        return schedule.slot.programme.name
 
     def get_end(self, schedule):
         # XXX temp workaround while dtstart not mandatory

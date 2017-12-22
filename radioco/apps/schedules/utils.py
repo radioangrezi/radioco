@@ -3,7 +3,7 @@ from radioco.apps.schedules.models import Schedule
 
 
 def available_dates(programme, after):
-    schedules = Schedule.objects.filter(programme=programme, type='L')
+    schedules = Schedule.objects.filter(slot__programme=programme, type='L')
 
     while True:
         candidates = (

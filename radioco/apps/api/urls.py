@@ -5,6 +5,7 @@ import views
 
 router = routers.DefaultRouter(trailing_slash=False)
 router.register(r'programmes', views.ProgrammeViewSet)
+router.register(r'slots', views.SlotViewSet)
 router.register(r'episodes', views.EpisodeViewSet)
 router.register(r'schedules', views.ScheduleViewSet)
 router.register(

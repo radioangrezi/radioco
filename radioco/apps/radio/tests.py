@@ -14,12 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from radioco.apps.programmes.models import Programme, Episode
-from radioco.apps.schedules.models import Schedule
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 import datetime
 import utils
+
+from radioco.apps.programmes.models import Programme
 
 
 def now():
@@ -31,7 +31,8 @@ class TestDataMixin(object):
     def setUpTestData(cls):
         utils.create_example_data()
         cls.programme = Programme.objects.get(name="Classic hits")
-        cls.schedule = cls.programme.schedule_set.first()
+        cls.slot = cls.programme.slot_set.first()
+        cls.schedule = cls.slot.schedule_set.first()
         cls.episode = cls.programme.episode_set.first()
 
 class RadioIntegrationTests(TestDataMixin, TestCase):

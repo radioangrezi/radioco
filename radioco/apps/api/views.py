@@ -1,5 +1,5 @@
 from radioco.apps.programmes.models import Programme, Episode
-from radioco.apps.schedules.models import Schedule, Transmission
+from radioco.apps.schedules.models import Slot, Schedule, Transmission
 from django import forms
 from django import utils
 from django.shortcuts import get_object_or_404
@@ -14,6 +14,11 @@ class ProgrammeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Programme.objects.all()
     serializer_class = serializers.ProgrammeSerializer
     lookup_field = 'slug'
+
+
+class SlotViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Slot.objects.all()
+    serializer_class = serializers.SlotSerializer
 
 
 class EpisodeViewSet(viewsets.ReadOnlyModelViewSet):

@@ -27,8 +27,8 @@ from django.contrib import admin
 from django.forms import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
-from radioco.apps.programmes.models import Programme, Podcast, Episode, Role, Participant
-from radioco.apps.schedules.models import Schedule
+from radioco.apps.programmes.models import (
+    Programme, Podcast, Episode, Role, Participant)
 from radioco.apps.schedules import utils
 
 
@@ -98,11 +98,8 @@ class NonStaffProgrammeAdmin(admin.ModelAdmin):
     def get_form(self, request, obj=None, **kwargs):
         kwargs['fields'] = [
             'name', 'synopsis', 'category', 'current_season', 'photo',
-            'language', 'website', '_runtime']
-        if not obj or request.user.has_perm('programmes.add_programme'):
-            self.exclude = ['slug', ]
-        else:
-            self.exclude = ['slug', '_runtime']
+            'language', 'website']
+        self.exclude = ['slug', ]
         return super(NonStaffProgrammeAdmin, self).get_form(request, obj, **kwargs)
 
     def save_formset(self, request, form, formset, change):
