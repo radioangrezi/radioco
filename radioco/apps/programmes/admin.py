@@ -28,8 +28,7 @@ from django.forms import ValidationError
 from django.utils.translation import ugettext_lazy as _
 
 from radioco.apps.programmes.models import (
-    Programme, Podcast, Episode, Role, Participant, Slot)
-from radioco.apps.schedules.models import Schedule
+    Programme, Podcast, Episode, Role, Participant)
 from radioco.apps.schedules import utils
 
 
@@ -117,17 +116,6 @@ class NonStaffProgrammeAdmin(admin.ModelAdmin):
         if not request.user.has_perm('programmes.see_all_programmes'):
             qs = qs.filter(announcers__in=[request.user]).distinct()
         return qs
-
-
-#SLOT
-@admin.register(Slot)
-class SlotAdmin(admin.ModelAdmin):
-    list_display = ('_name', 'runtime')
-    list_filter = ('programme__name', 'runtime')
-
-    def _name(self, slot):
-        return slot.programme.name
-    _name.admin_order_field = 'programme__name'
 
 
 # EPISODE

@@ -4,8 +4,9 @@ import recurrence
 
 from radioco.apps.global_settings.models import SiteConfiguration
 from radioco.apps.programmes.models import (
-    Programme, Episode, Role, CONTRIBUTOR, Podcast, Slot)
-from radioco.apps.schedules.models import Schedule, MO, TU, WE, TH, FR, SA, SU
+    Programme, Episode, Role, CONTRIBUTOR, Podcast)
+from radioco.apps.schedules.models import (
+    Slot, Schedule, MO, TU, WE, TH, FR, SA, SU)
 from radioco.apps.schedules.utils import rearrange_episodes
 
 

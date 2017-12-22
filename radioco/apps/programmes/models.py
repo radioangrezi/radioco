@@ -108,18 +108,6 @@ class Programme(models.Model):
         return u"%s" % (self.name)
 
 
-class Slot(models.Model):
-    programme = models.ForeignKey(Programme, verbose_name=_("programme"))
-    runtime = models.DurationField(
-        verbose_name=_("runtime"), help_text=_("runtime in seconds"))
-
-    class Meta:
-        ordering = ["programme__name"]
-
-    def __unicode__(self):
-        return "{:s} ({:s})".format(self.programme.name, self.runtime)
-
-
 class EpisodeManager(models.Manager):
     # XXX this is not atomic, transaction?
     def create_episode(self, date, programme, last_episode=None, episode=None):

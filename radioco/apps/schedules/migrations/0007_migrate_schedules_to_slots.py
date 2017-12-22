@@ -9,28 +9,40 @@ import datetime
 
 def migrate_schedules_to_slots(apps, schema_editor):
     Programme = apps.get_model('programmes', 'Programme')
-    Slot = apps.get_model('programmes', 'Slot')
+    Slot = apps.get_model('schedules', 'Slot')
     Schedule = apps.get_model('schedules', 'Schedule')
-    for schedule in Schedule.objects.all():
-        slot = Slot.objects.get(
-            programme=schedule.programme,
-            runtime=datetime.timedelta(minutes=schedule.programme._runtime))
-        schedule.slot = slot
-        schedule.save()
+
+    for programme in Programme.objects.all():
+        slot, created = Slot.objects.get_or_create(
+            programme=programme,
+            runtime=datetime.timedelta(minutes=programme._runtime))
+        for schedule in programme.schedule_set.all():
+            schedule.slot = slot
+            schedule.save()
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('programmes', '0014_create_slots'),
         ('schedules', '0006_add_repetition_type'),
     ]
 
     operations = [
+        migrations.CreateModel(
+            name='Slot',
+            fields=[
+                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('programme', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='programmes.Programme', verbose_name='programme')),
+                ('runtime', models.DurationField(help_text='runtime in seconds', verbose_name='runtime')),
+            ],
+            options={
+                'ordering': ['programme__name'],
+            },
+        ),
         migrations.AddField(
             model_name='schedule',
             name='slot',
-            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='programmes.Slot', verbose_name='slot'),
+            field=models.ForeignKey(default=1, on_delete=django.db.models.deletion.CASCADE, to='schedules.Slot', verbose_name='slot'),
             preserve_default=False,
         ),
         migrations.RunPython(migrate_schedules_to_slots),

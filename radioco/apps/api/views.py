@@ -1,5 +1,5 @@
-from radioco.apps.programmes.models import Programme, Episode, Slot
-from radioco.apps.schedules.models import Schedule, Transmission
+from radioco.apps.programmes.models import Programme, Episode
+from radioco.apps.schedules.models import Slot, Schedule, Transmission
 from django import forms
 from django import utils
 from django.shortcuts import get_object_or_404

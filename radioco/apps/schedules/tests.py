@@ -20,10 +20,41 @@ import datetime
 import mock
 import recurrence
 
-from radioco.apps.programmes.models import Programme, Slot
+from radioco.apps.programmes.models import Programme
 from radioco.apps.radio.tests import TestDataMixin, now
 from radioco.apps.schedules import utils
-from radioco.apps.schedules.models import Schedule, Transmission
+from radioco.apps.schedules.models import Slot, Schedule, Transmission
+
+
+class SlotModelTests(TestCase):
+
+    def setUp(self):
+        self.programme = Programme.objects.create(
+            name="Test programme",
+            synopsis="This is a description",
+            current_season=8)
+
+        self.slot = Slot.objects.create(
+            programme=self.programme, runtime=datetime.timedelta(minutes=60))
+
+    def test_model_manager(self):
+        self.assertIsInstance(self.slot, Slot)
+
+    def test_programme(self):
+        self.assertEqual(self.slot.programme, self.programme)
+
+    def test_runtime(self):
+        self.assertEqual(self.slot.runtime, datetime.timedelta(minutes=60))
+
+    def test_validation(self):
+        with self.assertRaisesMessage(
+                ValidationError,
+                "{'runtime': [u'This field cannot be null.'], "
+                "'programme': [u'This field cannot be null.']}"):
+            Slot().clean_fields()
+
+    def test_str(self):
+        self.assertEqual(str(self.slot), "Test programme (1:00:00)")
 
 
 class ScheduleModelTests(TestDataMixin, TestCase):

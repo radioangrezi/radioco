@@ -15,12 +15,22 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from radioco.apps.schedules.models import Schedule
+from radioco.apps.schedules.models import Schedule, Slot
 from django.contrib import admin
 try:
     from django.utils.encoding import force_unicode
 except ImportError:
     from django.utils.encoding import force_text as force_unicode
+
+
+@admin.register(Slot)
+class SlotAdmin(admin.ModelAdmin):
+    list_display = ('_name', 'runtime')
+    list_filter = ('programme__name', 'runtime')
+
+    def _name(self, slot):
+        return slot.programme.name
+    _name.admin_order_field = 'programme__name'
 
 
 @admin.register(Schedule)

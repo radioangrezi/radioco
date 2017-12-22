@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from radioco.apps.programmes.models import (
-    Programme, Episode, EpisodeManager, Role, Slot)
+    Programme, Episode, EpisodeManager, Role)
 from radioco.apps.radio.tests import TestDataMixin, now
 from django.contrib.admin.options import ModelAdmin
 from django.contrib.admin.sites import AdminSite
@@ -147,34 +147,3 @@ class EpisodeModelTests(TestCase):
                          datetime.datetime(2014, 1, 1, 13, 30, 0, 0))
     def test_str(self):
         self.assertEqual(str(self.episode), "8x1 Test programme")
-
-
-class SlotModelTests(TestCase):
-
-    def setUp(self):
-        self.programme = Programme.objects.create(
-            name="Test programme",
-            synopsis="This is a description",
-            current_season=8)
-
-        self.slot = Slot.objects.create(
-            programme=self.programme, runtime=datetime.timedelta(minutes=60))
-
-    def test_model_manager(self):
-        self.assertIsInstance(self.slot, Slot)
-
-    def test_programme(self):
-        self.assertEqual(self.slot.programme, self.programme)
-
-    def test_runtime(self):
-        self.assertEqual(self.slot.runtime, datetime.timedelta(minutes=60))
-
-    def test_validation(self):
-        with self.assertRaisesMessage(
-                ValidationError,
-                "{'runtime': [u'This field cannot be null.'], "
-                "'programme': [u'This field cannot be null.']}"):
-            Slot().clean_fields()
-
-    def test_str(self):
-        self.assertEqual(str(self.slot), "Test programme (1:00:00)")

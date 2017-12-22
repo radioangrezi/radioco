@@ -14,20 +14,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from radioco.apps.programmes.models import Episode, Slot
-from dateutil import rrule
-from django.core.exceptions import ValidationError
-from django.core.urlresolvers import reverse
 from django.db import models
-from django.db.models import Q
-from django.db.models.signals import post_delete
-from django.dispatch import receiver
-from django.template.defaultfilters import slugify
-from django.utils import six
 from django.utils.translation import ugettext_lazy as _
 from recurrence.fields import RecurrenceField
 import datetime
 import django.utils.timezone
+
+from radioco.apps.programmes.models import Episode, Programme
 
 
 EMISSION_TYPE = (
@@ -54,6 +47,18 @@ WEEKDAY_CHOICES = (
     (SA, _('Saturday')),
     (SU, _('Sunday')),
 )
+
+
+class Slot(models.Model):
+    programme = models.ForeignKey(Programme, verbose_name=_("programme"))
+    runtime = models.DurationField(
+        verbose_name=_("runtime"), help_text=_("runtime in seconds"))
+
+    class Meta:
+        ordering = ["programme__name"]
+
+    def __unicode__(self):
+        return "{:s} ({:s})".format(self.programme.name, self.runtime)
 
 
 class Schedule(models.Model):

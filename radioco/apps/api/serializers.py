@@ -1,5 +1,5 @@
-from radioco.apps.programmes.models import Programme, Episode, Slot
-from radioco.apps.schedules.models import Schedule, Transmission
+from radioco.apps.programmes.models import Programme, Episode
+from radioco.apps.schedules.models import Slot, Schedule, Transmission
 from rest_framework import serializers
 import datetime
 
