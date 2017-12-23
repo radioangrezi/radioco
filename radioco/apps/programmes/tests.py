@@ -14,10 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from radioco.apps.programmes.models import (
-    Programme, Episode, EpisodeManager, Role)
-from radioco.apps.radio.tests import TestDataMixin, now
-from django.contrib.admin.options import ModelAdmin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError, FieldError
@@ -26,6 +22,11 @@ from django.test import TestCase
 import datetime
 import mock
 
+from radioco.apps.programmes.admin import NonStaffProgrammeAdmin
+from radioco.apps.programmes.models import (
+    Programme, Episode, EpisodeManager, Role)
+from radioco.apps.programmes.signals import pre_archive
+from radioco.apps.radio.tests import TestDataMixin, now
 
 class ProgrammeModelTests(TestCase):
 
@@ -59,19 +60,54 @@ class ProgrammeModelTests(TestCase):
         self.assertEqual(self.programme.updated_at,
                          datetime.datetime(2014, 1, 1, 13, 30, 0, 0))
 
+    def test_archived(self):
+        self.assertFalse(self.programme.archived)
+
+    def test_archive(self):
+        self.programme.archive()
+        self.programme.refresh_from_db()
+        self.assertTrue(self.programme.archived)
+
+    def test_archive_emits_signal(self):
+        handler = mock.MagicMock()
+        pre_archive.connect(handler, sender=Programme)
+        self.programme.archive()
+        handler.assert_called_once_with(
+            instance=self.programme, sender=Programme, signal=mock.ANY)
+
+    def test_archive_emits_signal_once(self):
+        self.programme.archive()
+        handler = mock.MagicMock()
+        pre_archive.connect(handler, sender=Programme)
+        self.programme.archive()
+        handler.assert_not_called()
+
+    def test_restore(self):
+        self.programme.archive()
+        self.programme.restore()
+        self.programme.refresh_from_db()
+        self.assertFalse(self.programme.archived)
+
     def test_str(self):
         self.assertEqual(str(self.programme), "Test programme")
 
 
-class ProgrammeModelAdminTests(TestCase):
+class ProgrammeModelAdminTests(TestDataMixin, TestCase):
     def setUp(self):
-        self.site = AdminSite()
+        self.programme_admin = NonStaffProgrammeAdmin(Programme, AdminSite())
 
     def test_fieldset(self):
-        ma = ModelAdmin(Programme, self.site)
-        self.assertEqual(ma.get_fields(None), [
-            'name', 'synopsis', 'photo', 'language', 'current_season',
-            'category', 'website', 'slug'])
+        self.assertListEqual(self.programme_admin.get_fields(None), [
+            'name', 'synopsis', 'category', 'current_season', 'photo',
+            'language', 'website'])
+
+    def test_archive_emits_signal(self):
+        handler = mock.MagicMock()
+        pre_archive.connect(handler)
+        self.programme_admin.archive(
+            None, Programme.objects.filter(name=u'Classic hits'))
+        handler.assert_called_once_with(
+            instance=self.programme, sender=Programme, signal=mock.ANY)
 
 
 class EpisodeManagerTests(TestDataMixin, TestCase):

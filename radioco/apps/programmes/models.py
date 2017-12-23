@@ -26,6 +26,8 @@ from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
 import datetime
 
+from radioco.apps.programmes.signals import pre_archive
+
 
 if hasattr(settings, 'PROGRAMME_LANGUAGES'):
     PROGRAMME_LANGUAGES = settings.PROGRAMME_LANGUAGES
@@ -95,6 +97,19 @@ class Programme(models.Model):
     slug = models.SlugField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+    archived = models.BooleanField(default=False)
+
+
+    def archive(self):
+        if not self.archived:
+            self.archived = True
+            pre_archive.send(sender=self.__class__, instance=self)
+            self.save()
+
+    def restore(self):
+        if self.archived:
+            self.archived = False
+            self.save()
 
     # XXX form
     def save(self, *args, **kwargs):

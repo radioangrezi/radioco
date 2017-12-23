@@ -1,3 +1,5 @@
+import django.utils.timezone
+
 from radioco.apps.programmes.models import Episode
 from radioco.apps.schedules.models import Schedule
 
@@ -45,3 +47,10 @@ def rearrange_episodes(programme, after):
 
         episode.issue_date = None
         episode.save()
+
+
+def archive_schedules(instance=None, sender=None, **kwargs):
+    schedules = Schedule.objects.filter(slot__programme=instance)
+    for schedule in schedules:
+        schedule.recurrences.dtend = django.utils.timezone.now()
+        schedule.save()

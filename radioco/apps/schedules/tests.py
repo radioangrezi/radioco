@@ -17,6 +17,7 @@
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 import datetime
+import django.utils.timezone
 import mock
 import recurrence
 
@@ -322,3 +323,10 @@ class ScheduleUtilsTests(TestDataMixin, TestCase):
              datetime.datetime(2015, 1, 3, 14, 0),
              datetime.datetime(2015, 1, 3, 16, 0),
              datetime.datetime(2015, 1, 4, 14, 0)])
+
+    @mock.patch('django.utils.timezone.now', now)
+    def test_archive_schedules(self):
+        utils.archive_schedules(
+            instance=self.programme, sender=self.programme.__class__)
+        self.schedule.refresh_from_db()
+        self.assertEqual(self.schedule.end, django.utils.timezone.now())

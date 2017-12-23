@@ -1,23 +1,27 @@
-from radioco.apps.programmes.models import Programme, Episode
-from radioco.apps.schedules.models import Slot, Schedule, Transmission
 from django import forms
 from django import utils
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 import datetime
 import serializers
 
+from radioco.apps.programmes.models import Programme, Episode
+from radioco.apps.schedules.models import Slot, Schedule, Transmission
+
 
 class ProgrammeViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Programme.objects.all()
     serializer_class = serializers.ProgrammeSerializer
+    filter_backends = (DjangoFilterBackend,)
+    filter_fields = ('archived',)
     lookup_field = 'slug'
 
 
 class SlotViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Slot.objects.all()
+    queryset = Slot.objects.filter(programme__archived=False)
     serializer_class = serializers.SlotSerializer
 
 

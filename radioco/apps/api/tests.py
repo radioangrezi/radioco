@@ -1,15 +1,17 @@
+from django.contrib.auth.models import User, Permission
+from django.test import TestCase
+from rest_framework import status
+from rest_framework.test import APITestCase
+import datetime
+import json
+import mock
+import serializers
+import views
+
 from radioco.apps.programmes.models import Programme, Episode
 from radioco.apps.radio.tests import TestDataMixin
 from radioco.apps.schedules.models import Schedule, Transmission
 from radioco.apps.schedules.models import WE
-from django.contrib.auth.models import User, Permission
-from django.test import TestCase
-from rest_framework import status
-from rest_framework.test import APITestCase, APIRequestFactory
-import datetime
-import mock
-import serializers
-import views
 
 
 def mock_now():
@@ -22,7 +24,7 @@ class TestSerializers(TestDataMixin, TestCase):
             self.programme, context={'request': None})
         self.assertListEqual(serializer.data.keys(), [
             'name', 'synopsis', 'photo', 'language', 'website', 'category',
-            'created_at', 'updated_at', 'url'])
+            'created_at', 'updated_at', 'archived', 'url'])
 
     def test_programme_photo_url(self):
         serializer = serializers.ProgrammeSerializer(
@@ -97,6 +99,13 @@ class TestAPI(TestDataMixin, APITestCase):
     def test_programmes_get_all(self):
         response = self.client.get('/api/2/programmes')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 5)
+
+    def test_programmes_get_archived(self):
+        response = self.client.get('/api/2/programmes', {'archived': True})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]['name'], u'The best wine')
 
     def test_programmes_post(self):
         response = self.client.post('/api/2/programmes')
@@ -116,6 +125,7 @@ class TestAPI(TestDataMixin, APITestCase):
     def test_slots_get_all(self):
         response = self.client.get('/api/2/slots')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 4)
 
     def test_slots_post(self):
         response = self.client.post('/api/2/slots')

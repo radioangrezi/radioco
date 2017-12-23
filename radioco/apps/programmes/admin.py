@@ -91,9 +91,10 @@ class NonStaffRoleInline(admin.StackedInline):
 
 
 class NonStaffProgrammeAdmin(admin.ModelAdmin):
-    list_display = ('name',)
+    list_display = ('name', 'category', 'language', 'archived')
     search_fields = ['name']
     inlines = [NonStaffRoleInline]
+    actions = ['archive', 'restore']
 
     def get_form(self, request, obj=None, **kwargs):
         kwargs['fields'] = [
@@ -116,6 +117,15 @@ class NonStaffProgrammeAdmin(admin.ModelAdmin):
         if not request.user.has_perm('programmes.see_all_programmes'):
             qs = qs.filter(announcers__in=[request.user]).distinct()
         return qs
+
+    def archive(self, request, programmes):
+        for programme in programmes:
+            programme.archive()
+    archive.short_description = "Archive selected programmes"
+
+    def restore(self, request, programmes):
+        programmes.update(archived=False)
+    restore.short_description = "Restore selected programmes from archive"
 
 
 # EPISODE

@@ -12,7 +12,7 @@ class ProgrammeSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Programme
         fields = ('name', 'synopsis', 'photo', 'language', 'website',
-                  'category', 'created_at', 'updated_at', 'url')
+                  'category', 'created_at', 'updated_at', 'archived', 'url')
 
 
 class SlotSerializer(serializers.HyperlinkedModelSerializer):

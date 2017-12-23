@@ -30,10 +30,14 @@ class TestDataMixin(object):
     @classmethod
     def setUpTestData(cls):
         utils.create_example_data()
+
+        Programme.objects.get(name="The best wine").archive()
+
         cls.programme = Programme.objects.get(name="Classic hits")
         cls.slot = cls.programme.slot_set.first()
         cls.schedule = cls.slot.schedule_set.first()
         cls.episode = cls.programme.episode_set.first()
+
 
 class RadioIntegrationTests(TestDataMixin, TestCase):
     def test_index(self):
