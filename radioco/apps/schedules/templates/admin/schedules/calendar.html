@@ -222,7 +222,7 @@
 
                 eventDrop: function (event, delta, revertFunc) {
                     $.ajax({
-                        type: "PATCH",  // XXX this is just for transition, we want to have a PUT here
+                        type: "PATCH",
                         url: "{% url 'api:schedule-list' %}/" + event.id,
                         contentType: 'application/json',
                         data: JSON.stringify({

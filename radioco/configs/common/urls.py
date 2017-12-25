@@ -26,15 +26,12 @@ from filebrowser.sites import site
 
 from radioco.apps.radio import views
 
-admin.site.logout_template = 'radio/logged_out.html'
 admin.site.site_header = _('RadioCo administration')
 admin.site.site_title = _('RadioCo site admin')
 
 
 urlpatterns = [
     url(r'^$', views.index, name="home"),
-    url(r'^login/$', views.user_login, name="login"),
-    url(r'^logout/$', views.user_logout, name="logout"),
     url(r'^grappelli/', include('grappelli.urls')),
     url(r'^admin/filebrowser/', include(site.urls)),
     url(r'^admin/', include(admin.site.urls)),

@@ -90,32 +90,13 @@ class NonStaffRoleInline(admin.StackedInline):
         return qs
 
 
+@admin.register(Programme)
 class NonStaffProgrammeAdmin(admin.ModelAdmin):
     list_display = ('name',)
-    search_fields = ['name']
+    search_fields = ('name',)
+    fields = ('name', 'synopsis', 'category', 'current_season', 'photo',
+              'language', 'website')
     inlines = [NonStaffRoleInline]
-
-    def get_form(self, request, obj=None, **kwargs):
-        kwargs['fields'] = [
-            'name', 'synopsis', 'category', 'current_season', 'photo',
-            'language', 'website']
-        self.exclude = ['slug', ]
-        return super(NonStaffProgrammeAdmin, self).get_form(request, obj, **kwargs)
-
-    def save_formset(self, request, form, formset, change):
-        instances = formset.save(commit=False)
-        for instance in instances:
-            # if no person field is displayed
-            if not instance.pk and not request.user.has_perm('programmes.see_all_roles'):
-                instance.person = request.user
-            instance.save()
-        formset.save_m2m()
-
-    def get_queryset(self, request):
-        qs = super(NonStaffProgrammeAdmin, self).get_queryset(request)
-        if not request.user.has_perm('programmes.see_all_programmes'):
-            qs = qs.filter(announcers__in=[request.user]).distinct()
-        return qs
 
 
 # EPISODE
@@ -315,5 +296,4 @@ class NonStaffEpisodeAdmin(admin.ModelAdmin):
         return qs
 
 
-admin.site.register(Programme, NonStaffProgrammeAdmin)
 admin.site.register(Episode, NonStaffEpisodeAdmin)

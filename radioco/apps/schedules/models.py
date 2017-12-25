@@ -1,5 +1,5 @@
 # Radioco - Broadcasting Radio Recording Scheduling system.
-# Copyright (C) 2014  Iago Veloso Abalo
+# Copyright (C) 2014  Iago Veloso Abalo, Stefan Walluhn
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,32 +23,6 @@ import django.utils.timezone
 from radioco.apps.programmes.models import Episode, Programme
 
 
-EMISSION_TYPE = (
-    ("L", _("live")),
-    ("B", _("broadcast")),
-    ("S", _("broadcast syndication")),
-    ("R", _("repetition"))
-)
-
-MO = 0
-TU = 1
-WE = 2
-TH = 3
-FR = 4
-SA = 5
-SU = 6
-
-WEEKDAY_CHOICES = (
-    (MO, _('Monday')),
-    (TU, _('Tuesday')),
-    (WE, _('Wednesday')),
-    (TH, _('Thursday')),
-    (FR, _('Friday')),
-    (SA, _('Saturday')),
-    (SU, _('Sunday')),
-)
-
-
 class Slot(models.Model):
     programme = models.ForeignKey(Programme, verbose_name=_("programme"))
     runtime = models.DurationField(
@@ -62,17 +36,36 @@ class Slot(models.Model):
 
 
 class Schedule(models.Model):
+    LIVE = 'L'
+    BROADCAST = 'B'
+    BROADCAST_SYNDICATION = 'S'
+    REPETITION = 'R'
+    SCHEDULE_TYPE = (
+        (LIVE, _("live")),
+        (BROADCAST, _("broadcast")),
+        (BROADCAST_SYNDICATION, _("broadcast syndication")),
+        (REPETITION, _("repetition")))
+
     class Meta:
         verbose_name = _('schedule')
         verbose_name_plural = _('schedules')
 
     slot = models.ForeignKey(Slot, verbose_name=_("slot"))
-    type = models.CharField(verbose_name=_("type"), choices=EMISSION_TYPE, max_length=1)
+    type = models.CharField(
+        verbose_name=_("type"), choices=SCHEDULE_TYPE, max_length=1)
     recurrences = RecurrenceField(verbose_name=_("recurrences"))
     source = models.ForeignKey(
-        'self', blank=True, null=True, on_delete=models.SET_NULL, verbose_name=_("source"),
-        help_text=_("It is used when is a broadcast.")
-    )
+        'self', blank=True, null=True,
+        on_delete=models.SET_NULL,
+        verbose_name=_("source"),
+        help_text=_("It is used when is a broadcast."))
+
+    def __init__(self, *args, **kwargs):
+        super(Schedule, self).__init__(*args, **kwargs)
+
+        # hacky workaround, remove after upstream bug is solved
+        # https://github.com/django-recurrence/django-recurrence/issues/94
+        self.__fix_rdates__()
 
     @property
     def runtime(self):
@@ -80,51 +73,29 @@ class Schedule(models.Model):
 
     @property
     def start(self):
-        return self.rr_start
+        return self.recurrences.dtstart
 
     @start.setter
     def start(self, start_date):
-        self.rr_start = start_date
-
-    @property
-    def end(self):
-        return self.rr_end
-
-    # XXX refactor
-    @property
-    def rr_start(self):
-        return self.recurrences.dtstart
-
-    @rr_start.setter
-    def rr_start(self, start_date):
         self.recurrences.dtstart = start_date
 
     @property
-    def rr_end(self):
-        return self.recurrences.dtend
-
+    def end(self):
+        if not self.start:
+            return None
+        return self.start + self.runtime
 
     def dates_between(self, after, before):
         """
             Return a sorted list of dates between after and before
         """
-        # hacky workaround, remove after upstream bug is solved
-        # https://github.com/django-recurrence/django-recurrence/issues/94
-        self.__fix_rdates__()
-        return self.recurrences.between(
-            self._merge_after(after), self._merge_before(before), inc=True)
+        return self.recurrences.between(after, before, inc=True)
 
     def date_before(self, before):
-        # hacky workaround, remove after upstream bug is solved
-        # https://github.com/django-recurrence/django-recurrence/issues/94
-        self.__fix_rdates__()
-        return self.recurrences.before(self._merge_before(before), inc=True)
+        return self.recurrences.before(before, inc=True)
 
     def date_after(self, after, inc=True):
-        # hacky workaround, remove after upstream bug is solved
-        # https://github.com/django-recurrence/django-recurrence/issues/94
-        self.__fix_rdates__()
-        return self.recurrences.after(self._merge_after(after), inc)
+        return self.recurrences.after(after, inc)
 
     def save(self, *args, **kwargs):
         import utils
@@ -132,26 +103,18 @@ class Schedule(models.Model):
         utils.rearrange_episodes(
             self.slot.programme, django.utils.timezone.now())
 
-    def _merge_before(self, before):
-        if not self.end:
-            return before
-        return min(before, self.end)
-
-    # XXX refactor
-    def _merge_after(self, after):
-        return after
-
     def __unicode__(self):
-        return ' - '.join([self.start.strftime('%A'), self.start.strftime('%X')])
+        return ' - '.join(
+            [self.start.strftime('%A'), self.start.strftime('%X')])
 
     def __fix_rdates__(self):
         def fix_rdate(rdate):
-            return datetime.datetime.combine(rdate, datetime.time(
-                self.start.hour,
-                self.start.minute,
-                self.start.second,
-                self.start.microsecond,
-                self.start.tzinfo))
+            return datetime.datetime.combine(
+                rdate, datetime.time(self.start.hour,
+                                     self.start.minute,
+                                     self.start.second,
+                                     self.start.microsecond,
+                                     self.start.tzinfo))
         self.recurrences.rdates = map(fix_rdate, self.recurrences.rdates)
         self.recurrences.exdates = map(fix_rdate, self.recurrences.exdates)
 
@@ -159,7 +122,6 @@ class Schedule(models.Model):
 class Transmission(object):
     @classmethod
     def at(cls, at):
-        # XXX filter schedule start / end
         schedules = Schedule.objects.all()
         for schedule in schedules:
             date = schedule.date_before(at)
@@ -193,8 +155,7 @@ class Transmission(object):
 
     def _get_or_create_episode(self):
         try:
-            # XXX do not use sting
-            if self.type == 'R':
+            if self.type == Schedule.REPETITION:
                 _episodes = Episode.objects.filter(
                     programme=self.programme,
                     issue_date__lt=self.start)

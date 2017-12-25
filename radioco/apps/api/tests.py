@@ -1,7 +1,3 @@
-from radioco.apps.programmes.models import Programme, Episode
-from radioco.apps.radio.tests import TestDataMixin
-from radioco.apps.schedules.models import Schedule, Transmission
-from radioco.apps.schedules.models import WE
 from django.contrib.auth.models import User, Permission
 from django.test import TestCase
 from rest_framework import status
@@ -10,6 +6,10 @@ import datetime
 import mock
 import serializers
 import views
+
+from radioco.apps.programmes.models import Programme, Episode
+from radioco.apps.radio.tests import TestDataMixin
+from radioco.apps.schedules.models import Schedule, Transmission
 
 
 def mock_now():
@@ -61,7 +61,7 @@ class TestSerializers(TestDataMixin, TestCase):
             title=u'Classic hits',
             source=None,
             start='2015-01-01T14:00:00',
-            end=datetime.datetime(2015, 1, 1, 15, 0)))
+            end='2015-01-01T15:00:00'))
 
     def test_transmission(self):
         serializer = serializers.TransmissionSerializer(
@@ -70,7 +70,7 @@ class TestSerializers(TestDataMixin, TestCase):
             context={'request': None})
         data = serializer.data
 
-        self.assertListEqual( data.keys(), [
+        self.assertListEqual(data.keys(), [
             'start', 'end', 'type', 'programme', 'episode', 'schedule'])
 
         self.assertEqual(data['start'], '2015-01-06T14:00:00')
@@ -86,6 +86,8 @@ class TestAPI(TestDataMixin, APITestCase):
             username='klaus', password='topsecret')
         admin.user_permissions.add(
             Permission.objects.get(codename='add_schedule'))
+        admin.user_permissions.add(
+            Permission.objects.get(codename='change_schedule'))
 
         someone = User.objects.create_user(
             username='someone', password='topsecret')
@@ -145,7 +147,7 @@ class TestAPI(TestDataMixin, APITestCase):
         response = self.client.get('/api/2/schedules')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    def test_schedules_post(self):
+    def test_schedules_post_unauthenticated(self):
         response = self.client.post('/api/2/schedules')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -153,6 +155,20 @@ class TestAPI(TestDataMixin, APITestCase):
         self.client.login(username="someone", password="topsecret")
         response = self.client.post('/api/2/schedules')
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+    def test_schedules_post(self):
+        self.client.login(username="klaus", password="topsecret")
+        response = self.client.post('/api/2/schedules', dict(
+            slot='http://127.0.0.1:8000/api/2/slots/5',
+            start='2017-12-26T03:00:00',
+            type='L'))
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_schedules_patch(self):
+        self.client.login(username="klaus", password="topsecret")
+        response = self.client.patch('/api/2/schedules/1', dict(
+            start='2017-12-26T03:00:00', type='L'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     @mock.patch('django.utils.timezone.now', mock_now)
     def test_transmissions(self):

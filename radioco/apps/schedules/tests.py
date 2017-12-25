@@ -96,25 +96,11 @@ class ScheduleModelTests(TestDataMixin, TestCase):
 
     def test_end(self):
         self.assertEqual(
-            self.schedule.end, datetime.datetime(2014, 1, 31, 14, 0, 0))
+            self.schedule.end, datetime.datetime(2014, 1, 6, 15, 0))
 
     def test_end_none(self):
         schedule = Schedule(slot=Slot())
         self.assertIsNone(schedule.end)
-
-    def test_rr_start(self):
-        self.assertEqual(
-            self.schedule.rr_start, datetime.datetime(2014, 1, 6, 14, 0, 0))
-
-    def test_set_rr_start(self):
-        self.schedule.rr_start = datetime.datetime(2015, 1, 1, 14, 0, 0)
-        self.assertEqual(
-            self.schedule.recurrences.dtstart,
-            datetime.datetime(2015, 1, 1, 14, 0, 0))
-
-    def test_rr_end(self):
-        self.assertEqual(
-            self.schedule.rr_end, datetime.datetime(2014, 1, 31, 14, 0))
 
     def test_recurrence_rules(self):
         self.assertListEqual(

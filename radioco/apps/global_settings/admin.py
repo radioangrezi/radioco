@@ -29,9 +29,6 @@ except ImportError:
 
 
 class SingletonModelAdmin(admin.ModelAdmin):
-    object_history_template = "global_settings/admin_object_history.html"
-    change_form_template = "global_settings/admin_change_form.html"
-
     def has_add_permission(self, request):
         return False
 

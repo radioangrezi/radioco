@@ -92,10 +92,10 @@ def user_login(request):
     return HttpResponseRedirect(reverse('admin:index'))
 
 
-# User Logout View
-def user_logout(request):
-    logout(request)
-    return HttpResponseRedirect('/')
+## User Logout View
+#def user_logout(request):
+#    logout(request)
+#    return HttpResponseRedirect('/')
 
 
 def check_recorder_program(user):

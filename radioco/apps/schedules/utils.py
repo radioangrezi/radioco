@@ -1,47 +1,50 @@
+from django.db import transaction
+
 from radioco.apps.programmes.models import Episode
 from radioco.apps.schedules.models import Schedule
 
 
 def available_dates(programme, after):
-    schedules = Schedule.objects.filter(slot__programme=programme, type='L')
+    schedules = Schedule.objects.filter(
+        slot__programme=programme, type=Schedule.LIVE)
 
     while True:
-        candidates = (
-            filter(lambda s: s is not None,
-                   map(lambda s: s.date_after(after, inc=False),
-                       schedules)))
+        candidates = filter(
+            lambda c: c is not None,
+            map(lambda s: s.date_after(after, inc=False), schedules))
         try:
-            # XXX there may be two parallel slots, use reduce
-            next = min(candidates)
+            candidate = min(candidates)
         except ValueError:
             break;
 
-        yield next
-        after = next
+        # there may be two or more parallel slots
+        for dates in filter(lambda c: c == candidate, candidates):
+            yield dates
+        after = candidate
 
 
-# XXX transaction?
 def rearrange_episodes(programme, after):
     episodes = Episode.objects.unfinished(programme, after)
     dates = available_dates(programme, after)
 
-    # Further dates and episodes available -> re-order
-    while True:
-        try:
-            date = dates.next()
-            episode = episodes.next()
-        except StopIteration:
-            break
+    with transaction.atomic():
+        # Further dates and episodes available -> re-order
+        while True:
+            try:
+                date = dates.next()
+                episode = episodes.next()
+            except StopIteration:
+                break
 
-        episode.issue_date = date
-        episode.save()
+            episode.issue_date = date
+            episode.save()
 
-    # No further dates available -> unschedule
-    while True:
-        try:
-            episode = episodes.next()
-        except StopIteration:
-            break
+        # No further dates available -> unschedule
+        while True:
+            try:
+                episode = episodes.next()
+            except StopIteration:
+                break
 
-        episode.issue_date = None
-        episode.save()
+            episode.issue_date = None
+            episode.save()

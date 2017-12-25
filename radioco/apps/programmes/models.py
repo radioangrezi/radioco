@@ -1,5 +1,5 @@
 # Radioco - Broadcasting Radio Recording Scheduling system.
-# Copyright (C) 2014  Iago Veloso Abalo
+# Copyright (C) 2014  Iago Veloso Abalo, Stefan Walluhn
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@ from django.core.exceptions import FieldError
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.db import transaction
 from django.db.models import Q
 from django.template.defaultfilters import slugify
 from django.utils.translation import ugettext_lazy as _
@@ -109,15 +110,17 @@ class Programme(models.Model):
 
 
 class EpisodeManager(models.Manager):
-    # XXX this is not atomic, transaction?
     def create_episode(self, date, programme, last_episode=None, episode=None):
         if not last_episode:
+            # may also be None
             last_episode = self.last(programme)
+
         season = programme.current_season
         if last_episode and last_episode.season == season:
             number_in_season = last_episode.number_in_season + 1
         else:
             number_in_season = 1
+
         if episode:
             episode.programme = programme
             episode.issue_date = date
@@ -128,13 +131,17 @@ class EpisodeManager(models.Manager):
                               issue_date=date,
                               season=season,
                               number_in_season=number_in_season)
-        episode.save()
-        for role in Role.objects.filter(programme=programme):
-            Participant.objects.create(person=role.person,
-                                       episode=episode,
-                                       role=role.role,
-                                       description=role.description)
+
+        with transaction.atomic():
+            for role in Role.objects.filter(programme=programme):
+                Participant.objects.create(person=role.person,
+                                           episode=episode,
+                                           role=role.role,
+                                           description=role.description)
+            episode.save()
+
         return episode
+
 
     def last(self, programme):
         episodes = Episode.objects.filter(programme=programme)
@@ -153,7 +160,7 @@ class EpisodeManager(models.Manager):
 
 class Episode(models.Model):
     class Meta:
-# XXX       unique_together = (('season', 'number_in_season', 'programme'),)
+        unique_together = (('season', 'number_in_season', 'programme'),)
         verbose_name = _('episode')
         verbose_name_plural = _('episodes')
         permissions = (("see_all_episodes", "Can see all episodes"),)

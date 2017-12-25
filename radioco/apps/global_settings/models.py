@@ -24,8 +24,6 @@ from django.utils.translation import ugettext as _u
 from django.utils.translation import ugettext_lazy as _
 from rest_framework.authtoken.models import Token
 
-from radioco.apps.schedules.models import WEEKDAY_CHOICES
-
 
 class SingletonModelManager(models.Manager):
     def get(self, *args, **kwargs):
@@ -116,6 +114,24 @@ class PodcastConfiguration(SingletonModel):
 
 
 class CalendarConfiguration(SingletonModel):
+    MO = 0
+    TU = 1
+    WE = 2
+    TH = 3
+    FR = 4
+    SA = 5
+    SU = 6
+    WEEKDAY_CHOICES = (
+        (MO, _('Monday')),
+        (TU, _('Tuesday')),
+        (WE, _('Wednesday')),
+        (TH, _('Thursday')),
+        (FR, _('Friday')),
+        (SA, _('Saturday')),
+        (SU, _('Sunday')),
+    )
+
+
     scroll_time = models.TimeField(
         default=datetime.time(0, 0, 0), verbose_name=_('scroll time'),
         help_text=_("Determines how far down the scroll pane is initially scrolled down.")

@@ -42,11 +42,12 @@ class EpisodeSerializer(serializers.HyperlinkedModelSerializer):
 
 class ScheduleSerializer(serializers.ModelSerializer):
     slot = serializers.HyperlinkedRelatedField(
-        view_name='api:slot-detail', queryset=Slot.objects.all())
+        view_name='api:slot-detail',
+        queryset=Slot.objects.all(),
+        required=False)
     title = serializers.SerializerMethodField()
-    # XXX this is a bit hacky...
-    start = serializers.DateTimeField(source='rr_start')
-    end = serializers.SerializerMethodField()
+    start = serializers.DateTimeField()
+    end = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = Schedule
@@ -54,13 +55,6 @@ class ScheduleSerializer(serializers.ModelSerializer):
 
     def get_title(self, schedule):
         return schedule.slot.programme.name
-
-    def get_end(self, schedule):
-        # XXX temp workaround while dtstart not mandatory
-        try:
-            return schedule.recurrences.dtstart + schedule.runtime
-        except TypeError:
-            return None
 
 
 class TransmissionSerializer(serializers.Serializer):

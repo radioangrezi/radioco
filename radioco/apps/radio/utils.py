@@ -2,11 +2,11 @@ from django.contrib.auth.models import User
 import datetime
 import recurrence
 
-from radioco.apps.global_settings.models import SiteConfiguration
+from radioco.apps.global_settings.models import (
+    SiteConfiguration, CalendarConfiguration)
 from radioco.apps.programmes.models import (
     Programme, Episode, Role, CONTRIBUTOR, Podcast)
-from radioco.apps.schedules.models import (
-    Slot, Schedule, MO, TU, WE, TH, FR, SA, SU)
+from radioco.apps.schedules.models import Slot, Schedule
 from radioco.apps.schedules.utils import rearrange_episodes
 
 

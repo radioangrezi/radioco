@@ -14,18 +14,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-
+from django.shortcuts import render
 import datetime
 import json
 
-from django.contrib.auth.decorators import permission_required
-from django.core.urlresolvers import reverse
-from django.http import HttpResponse
-from django.shortcuts import render
-
 from radioco.apps.global_settings.models import CalendarConfiguration
-from radioco.apps.programmes.models import Episode
-from radioco.apps.schedules.models import Schedule
 
 
 def schedule_list(request):
@@ -36,15 +29,5 @@ def schedule_list(request):
         'max_time': calendar_configuration.max_time.strftime('%H:%M:%S'),
         'first_day': calendar_configuration.first_day + 1,
         'language': request.LANGUAGE_CODE,
-        'transmissions': reverse('api:transmission-list'),
     }
     return render(request, 'schedules/schedules_list.html', context)
-
-
-#def feed_schedules(request):
-#    start = datetime.datetime.strptime(request.GET.get('start'), '%Y-%m-%d')
-#    end = datetime.datetime.strptime(request.GET.get('end'), '%Y-%m-%d')
-#    return HttpResponse(
-#        json.dumps(__get_events(after=start, before=end, json_mode=True)),
-#        content_type='application/json'
-#    )
