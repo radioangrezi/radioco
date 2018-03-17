@@ -1,22 +1,40 @@
-from django.contrib.auth.models import User, Permission
-from django.test import TestCase
-from rest_framework import status
-from rest_framework.test import APITestCase, APIRequestFactory
+# Radioco - Broadcasting Radio Recording Scheduling system.
+# Copyright (C) 2014  Stefan Walluhn
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 import datetime
 import mock
 import serializers
 import views
 
+from django.contrib.auth.models import User, Permission
+from django.test import TestCase
+
+from rest_framework import status
+from rest_framework.test import APITestCase, APIRequestFactory
+
 from radioco.apps.programmes.models import Programme, Episode
-from radioco.apps.radio.tests import TestDataMixin
 from radioco.apps.schedules.models import Schedule, Transmission
+import radioco.utils.tests
 
 
 def mock_now():
     return datetime.datetime(2015, 1, 6, 14, 30, 0)
 
 
-class TestSerializers(TestDataMixin, TestCase):
+class TestSerializers(radioco.utils.tests.TestDataMixin, TestCase):
     def test_programme(self):
         serializer = serializers.ProgrammeSerializer(
             self.programme, context={'request': None})
@@ -80,7 +98,7 @@ class TestSerializers(TestDataMixin, TestCase):
         self.assertEqual(data['schedule'], 6)
 
 
-class TestAPI(TestDataMixin, APITestCase):
+class TestAPI(radioco.utils.tests.TestDataMixin, APITestCase):
     def setUp(self):
         admin = User.objects.create_user(
             username='klaus', password='topsecret')

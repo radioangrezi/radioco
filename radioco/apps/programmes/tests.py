@@ -14,9 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from radioco.apps.programmes.models import (
-    Programme, Episode, EpisodeManager, Role)
-from radioco.apps.radio.tests import TestDataMixin, now
+import datetime
+import mock
+
 from django.contrib.admin.options import ModelAdmin
 from django.contrib.admin.sites import AdminSite
 from django.contrib.auth.models import User
@@ -24,13 +24,15 @@ from django.core.exceptions import ValidationError, FieldError
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils import timezone
-import datetime
-import mock
+
+from radioco.apps.programmes.models import (
+    Programme, Episode, EpisodeManager, Role)
+import radioco.utils.tests
 
 
 class ProgrammeModelTests(TestCase):
 
-    @mock.patch('django.utils.timezone.now', now)
+    @mock.patch('django.utils.timezone.now', radioco.utils.tests.now)
     def setUp(self):
         self.programme = Programme.objects.create(
             name="Test programme",
@@ -77,7 +79,7 @@ class ProgrammeModelAdminTests(TestCase):
             'category', 'website', 'slug'])
 
 
-class EpisodeManagerTests(TestDataMixin, TestCase):
+class EpisodeManagerTests(radioco.utils.tests.TestDataMixin, TestCase):
     def setUp(self):
         self.manager = EpisodeManager()
 
@@ -127,7 +129,7 @@ class EpisodeManagerTests(TestDataMixin, TestCase):
 
 class EpisodeModelTests(TestCase):
 
-    @mock.patch('django.utils.timezone.now', now)
+    @mock.patch('django.utils.timezone.now', radioco.utils.tests.now)
     def setUp(self):
         self.programme = Programme.objects.create(
             name="Test programme",

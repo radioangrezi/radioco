@@ -14,27 +14,12 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
 from django.core.urlresolvers import reverse
 from django.test import TestCase
-from django.utils import timezone
-import datetime
-import mock
-import utils
 
-from radioco.apps.programmes.models import Programme
+from radioco.utils.tests import TestDataMixin
 
-def now():
-    return timezone.make_aware(datetime.datetime(2014, 1, 1, 13, 30, 0))
-
-class TestDataMixin(object):
-    @classmethod
-    @mock.patch('django.utils.timezone.now', now)
-    def setUpTestData(cls):
-        utils.create_example_data()
-        cls.programme = Programme.objects.get(name="Classic hits")
-        cls.slot = cls.programme.slot_set.first()
-        cls.schedule = cls.slot.schedule_set.first()
-        cls.episode = cls.programme.episode_set.first()
 
 class RadioIntegrationTests(TestDataMixin, TestCase):
     def test_index(self):

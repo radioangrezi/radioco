@@ -14,17 +14,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-from django.core.exceptions import ValidationError
-from django.test import TestCase
+
 import datetime
-import django.utils.timezone
 import mock
 import recurrence
 
+from django.core.exceptions import ValidationError
+from django.test import TestCase
+import django.utils.timezone
+
 from radioco.apps.programmes.models import Programme
-from radioco.apps.radio.tests import TestDataMixin, now
 from radioco.apps.schedules import utils
 from radioco.apps.schedules.models import Slot, Schedule, Transmission
+import radioco.utils.tests
 import radioco.utils.timezone
 
 
@@ -59,7 +61,7 @@ class SlotModelTests(TestCase):
         self.assertEqual(str(self.slot), "Test programme (1:00:00)")
 
 
-class ScheduleModelTests(TestDataMixin, TestCase):
+class ScheduleModelTests(radioco.utils.tests.TestDataMixin, TestCase):
     def setUp(self):
         self.recurrences = recurrence.Recurrence(
             dtstart=django.utils.timezone.make_aware(
@@ -211,7 +213,7 @@ class ScheduleModelTests(TestDataMixin, TestCase):
     def test_unicode(self):
         self.assertEqual(unicode(self.schedule), 'Monday - 14:00:00')
 
-    @mock.patch('django.utils.timezone.now', now)
+    @mock.patch('django.utils.timezone.now', radioco.utils.tests.now)
     def test_save_rearange_episodes(self):
         self.assertEqual(
             self.episode.issue_date,
@@ -234,7 +236,7 @@ class ScheduleModelTests(TestDataMixin, TestCase):
             Schedule().clean_fields()
 
 
-class TransmissionModelTests(TestDataMixin, TestCase):
+class TransmissionModelTests(radioco.utils.tests.TestDataMixin, TestCase):
     def setUp(self):
         self.transmission = Transmission(
             self.schedule, datetime.datetime(2015, 1, 6, 14, 0, 0))
@@ -302,7 +304,7 @@ class TransmissionModelTests(TestDataMixin, TestCase):
                     datetime.datetime(2015, 1, 6, 14, 0)))])
 
 
-class ScheduleUtilsTests(TestDataMixin, TestCase):
+class ScheduleUtilsTests(radioco.utils.tests.TestDataMixin, TestCase):
     def test_available_dates_after(self):
         Schedule.objects.create(
             slot=self.slot,
