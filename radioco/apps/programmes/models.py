@@ -24,8 +24,8 @@ from django.db import models
 from django.db import transaction
 from django.db.models import Q
 from django.template.defaultfilters import slugify
+from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
-import datetime
 
 
 if hasattr(settings, 'PROGRAMME_LANGUAGES'):
@@ -149,7 +149,7 @@ class EpisodeManager(models.Manager):
 
     def unfinished(self, programme, after=None):
         if not after:
-            after = datetime.datetime.now()
+            after = timezone.now()
 
         episodes = Episode.objects.filter(
             Q(programme=programme) &

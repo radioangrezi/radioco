@@ -60,8 +60,8 @@ class TestSerializers(TestDataMixin, TestCase):
             slot=u'/api/2/slots/5',
             title=u'Classic hits',
             source=None,
-            start='2015-01-01T14:00:00',
-            end='2015-01-01T15:00:00'))
+            start='2015-01-01T14:00:00+01:00',
+            end='2015-01-01T15:00:00+01:00'))
 
     def test_transmission(self):
         serializer = serializers.TransmissionSerializer(
@@ -73,7 +73,7 @@ class TestSerializers(TestDataMixin, TestCase):
         self.assertListEqual(data.keys(), [
             'start', 'end', 'type', 'programme', 'episode', 'schedule'])
 
-        self.assertEqual(data['start'], '2015-01-06T14:00:00')
+        self.assertEqual(data['start'], '2015-01-06T14:00:00+01:00')
         self.assertEqual(data['programme']['name'], u'Classic hits')
         self.assertEqual(data['episode']['title'], u'Episode 1')
         self.assertEqual(data['type'], u'L')
@@ -182,7 +182,7 @@ class TestAPI(TestDataMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             sorted(response.data, key=lambda t: t['start'])[0]['start'],
-            '2015-02-01T08:00:00')
+            '2015-02-01T08:00:00+01:00')
 
     @mock.patch('django.utils.timezone.now', mock_now)
     def test_transmission_before(self):
@@ -191,7 +191,7 @@ class TestAPI(TestDataMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             sorted(response.data, key=lambda t: t['start'])[-1]['start'],
-            '2015-01-14T20:00:00')
+            '2015-01-14T20:00:00+01:00')
 
     @mock.patch('django.utils.timezone.now', mock_now)
     def test_transmission_now(self):
@@ -199,4 +199,4 @@ class TestAPI(TestDataMixin, APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(
             map(lambda t: (t['programme']['name'], t['start']), response.data),
-            [(u'Classic hits', '2015-01-06T14:00:00')])
+            [(u'Classic hits', '2015-01-06T14:00:00+01:00')])

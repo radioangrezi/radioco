@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.utils import timezone
 import datetime
 import recurrence
 
@@ -53,11 +54,11 @@ def create_example_data():
         programme=programme, runtime=datetime.timedelta(minutes=60))
 
     recurrences = recurrence.Recurrence(
-        dtstart=datetime.datetime(2015, 1, 1, 8, 0, 0),
+        dtstart=timezone.make_aware(datetime.datetime(2015, 1, 1, 8, 0, 0)),
         rrules=[recurrence.Rule(recurrence.DAILY)])
 
     recurrences_repetition = recurrence.Recurrence(
-        dtstart=datetime.datetime(2015, 1, 1, 20, 0, 0),
+        dtstart=timezone.make_aware(datetime.datetime( 2015, 1, 1, 20, 0, 0)),
         rrules=[recurrence.Rule(recurrence.DAILY)])
 
     Schedule.objects.get_or_create(
@@ -122,7 +123,8 @@ def create_example_data():
             programme=programme, runtime=datetime.timedelta(minutes=60))
 
         recurrences = recurrence.Recurrence(
-            dtstart=(datetime.datetime(2015, 1, 1, 10, 0, 0) +
+            dtstart=(
+                timezone.make_aware(datetime.datetime(2015, 1, 1, 10, 0, 0)) +
                 datetime.timedelta(hours=programme_counter)),
             rrules=[recurrence.Rule(recurrence.DAILY)])
 
@@ -143,4 +145,5 @@ def create_example_data():
                 )
 
     for programme in Programme.objects.all():
-        rearrange_episodes(programme, datetime.datetime(1970, 1, 1))
+        rearrange_episodes(
+            programme, timezone.make_aware(datetime.datetime(1970, 1, 1)))

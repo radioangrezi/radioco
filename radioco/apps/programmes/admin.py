@@ -26,6 +26,7 @@ from django import forms
 from django.contrib import admin
 from django.forms import ValidationError
 from django.utils.translation import ugettext_lazy as _
+from django.utils import timezone
 
 from radioco.apps.programmes.models import (
     Programme, Podcast, Episode, Role, Participant)
@@ -163,7 +164,7 @@ class NonStaffEpisodeAdminForm(forms.ModelForm):
 
     def clean_programme(self):
         programme = self.cleaned_data['programme']
-        now = datetime.datetime.now()
+        now = timezone.now()
         if not self.instance.pk:
             last_episode = Episode.objects.last(programme)
             if last_episode:
@@ -216,7 +217,7 @@ class OwnEpisodeIssueDateListFilter(admin.SimpleListFilter):
         )
 
     def queryset(self, request, queryset):
-        now = datetime.datetime.now()
+        now = timezone.now()
         if self.value() == 'next':
             return queryset.filter(issue_date__gte=now) | queryset.filter(issue_date__isnull=True)
         elif self.value() == 'lastweek':
@@ -252,7 +253,7 @@ class NonStaffEpisodeAdmin(admin.ModelAdmin):
         if not obj.pk:
             programme = obj.programme
             last_episode = Episode.objects.last(programme)
-            now = datetime.datetime.now()
+            now = timezone.now()
             if last_episode:
                 after = last_episode.issue_date + programme.runtime
                 if after < now:

@@ -23,6 +23,7 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError, FieldError
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.utils import timezone
 import datetime
 import mock
 
@@ -52,12 +53,14 @@ class ProgrammeModelTests(TestCase):
             self.programme.get_absolute_url(), "/programmes/test-programme/")
 
     def test_created_at(self):
-        self.assertEqual(self.programme.created_at,
-                         datetime.datetime(2014, 1, 1, 13, 30, 0, 0))
+        self.assertEqual(
+            self.programme.created_at,
+            timezone.make_aware(datetime.datetime(2014, 1, 1, 13, 30, 0, 0)))
 
     def test_updated_at(self):
-        self.assertEqual(self.programme.updated_at,
-                         datetime.datetime(2014, 1, 1, 13, 30, 0, 0))
+        self.assertEqual(
+            self.programme.updated_at,
+            timezone.make_aware(datetime.datetime(2014, 1, 1, 13, 30, 0, 0)))
 
     def test_str(self):
         self.assertEqual(str(self.programme), "Test programme")
@@ -79,7 +82,8 @@ class EpisodeManagerTests(TestDataMixin, TestCase):
         self.manager = EpisodeManager()
 
         self.episode = self.manager.create_episode(
-            datetime.datetime(2014, 6, 14, 10, 0, 0), self.programme)
+            timezone.make_aware(datetime.datetime(2014, 6, 14, 10, 0, 0)),
+            self.programme)
 
     def test_create_episode(self):
         self.assertIsInstance(self.episode, Episode)
@@ -92,7 +96,8 @@ class EpisodeManagerTests(TestDataMixin, TestCase):
 
     def test_issue_date(self):
         self.assertEqual(
-            self.episode.issue_date, datetime.datetime(2014, 6, 14, 10, 0, 0))
+            self.episode.issue_date,
+            timezone.make_aware(datetime.datetime(2014, 6, 14, 10, 0, 0)))
 
     def test_people(self):
         self.assertQuerysetEqual(
@@ -109,9 +114,10 @@ class EpisodeManagerTests(TestDataMixin, TestCase):
 
     def test_unfinished(self):
         episodes = self.manager.unfinished(
-            self.programme, datetime.datetime(2015, 1, 1))
+            self.programme, timezone.make_aware(datetime.datetime(2015, 1, 1)))
         self.assertEqual(
-            episodes.next().issue_date, datetime.datetime(2015, 1, 1, 14, 0))
+            episodes.next().issue_date,
+            timezone.make_aware(datetime.datetime(2015, 1, 1, 14, 0)))
 
     def test_unfinished_none(self):
         episodes = self.manager.unfinished(Programme())
@@ -129,7 +135,7 @@ class EpisodeModelTests(TestCase):
             current_season=8)
 
         self.episode = Episode.objects.create_episode(
-            datetime.datetime(2014, 1, 14, 10, 0, 0),
+            timezone.make_aware(datetime.datetime(2014, 1, 14, 10, 0, 0)),
             programme=self.programme)
 
     def test_model_manager(self):
@@ -139,11 +145,14 @@ class EpisodeModelTests(TestCase):
         self.assertEqual(self.episode.programme, self.programme)
 
     def test_created_at(self):
-        self.assertEqual(self.episode.created_at,
-                         datetime.datetime(2014, 1, 1, 13, 30, 0, 0))
+        self.assertEqual(
+            self.episode.created_at,
+            timezone.make_aware(datetime.datetime(2014, 1, 1, 13, 30, 0, 0)))
 
     def test_updated_at(self):
-        self.assertEqual(self.episode.updated_at,
-                         datetime.datetime(2014, 1, 1, 13, 30, 0, 0))
+        self.assertEqual(
+            self.episode.updated_at, 
+            timezone.make_aware(datetime.datetime(2014, 1, 1, 13, 30, 0, 0)))
+
     def test_str(self):
         self.assertEqual(str(self.episode), "8x1 Test programme")

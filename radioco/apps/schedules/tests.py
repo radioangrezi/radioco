@@ -16,12 +16,13 @@
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.utils import timezone
 import datetime
 import mock
 import recurrence
 
 from radioco.apps.programmes.models import Programme
-from radioco.apps.radio.tests import TestDataMixin, now
+from radioco.apps.radio.tests import TestDataMixin, now, tz_from_settings
 from radioco.apps.schedules import utils
 from radioco.apps.schedules.models import Slot, Schedule, Transmission
 
@@ -60,8 +61,10 @@ class SlotModelTests(TestCase):
 class ScheduleModelTests(TestDataMixin, TestCase):
     def setUp(self):
         self.recurrences = recurrence.Recurrence(
-            dtstart=datetime.datetime(2014, 1, 6, 14, 0, 0),
-            dtend=datetime.datetime(2014, 1, 31, 14, 0, 0),
+            dtstart=timezone.make_aware(
+                datetime.datetime(2014, 1, 6, 14, 0, 0)),
+            dtend=timezone.make_aware(
+                datetime.datetime(2014, 1, 31, 14, 0, 0)),
             rrules=[recurrence.Rule(recurrence.WEEKLY)])
 
         self.schedule = Schedule.objects.create(
@@ -78,17 +81,20 @@ class ScheduleModelTests(TestDataMixin, TestCase):
 
     def test_start_date_schedule_board_none(self):
         schedule = Schedule(recurrences=self.recurrences, slot=Slot())
-        self.assertEqual(schedule.start, datetime.datetime(2014, 1, 6, 14, 0))
+        self.assertEqual(
+            schedule.start,
+            tz_from_settings(datetime.datetime(2014, 1, 6, 14, 0)))
 
     def test_start(self):
         self.assertEqual(
-            self.schedule.start, datetime.datetime(2014, 1, 6, 14, 0, 0))
+            self.schedule.start,
+            tz_from_settings(datetime.datetime(2014, 1, 6, 14, 0, 0)))
 
     def test_set_start(self):
         self.schedule.start = datetime.datetime(2015, 1, 1, 14, 0, 0)
         self.assertEqual(
             self.schedule.recurrences.dtstart,
-            datetime.datetime(2015, 1, 1, 14, 0, 0))
+            tz_from_settings(datetime.datetime(2015, 1, 1, 14, 0, 0)))
 
     def test_start_none(self):
         schedule = Schedule(slot=Slot())
@@ -96,7 +102,8 @@ class ScheduleModelTests(TestDataMixin, TestCase):
 
     def test_end(self):
         self.assertEqual(
-            self.schedule.end, datetime.datetime(2014, 1, 6, 15, 0))
+            self.schedule.end,
+            tz_from_settings(datetime.datetime(2014, 1, 6, 15, 0)))
 
     def test_end_none(self):
         schedule = Schedule(slot=Slot())
@@ -109,26 +116,27 @@ class ScheduleModelTests(TestDataMixin, TestCase):
     def test_date_before(self):
         self.assertEqual(
             self.schedule.date_before(datetime.datetime(2014, 1, 14)),
-            datetime.datetime(2014, 1, 13, 14, 0))
+            tz_from_settings(datetime.datetime(2014, 1, 13, 14, 0)))
 
     def test_date_after(self):
         self.assertEqual(
             self.schedule.date_after(datetime.datetime(2014, 1, 14)),
-            datetime.datetime(2014, 1, 20, 14, 0))
+            tz_from_settings(datetime.datetime(2014, 1, 20, 14, 0)))
 
     def test_date_after_exclude(self):
         self.assertEqual(
             self.schedule.date_after(
                 datetime.datetime(2014, 1, 6, 14, 0), inc=False),
-            datetime.datetime(2014, 1, 13, 14, 0))
+            tz_from_settings(datetime.datetime(2014, 1, 13, 14, 0)))
 
     def test_dates_between(self):
         self.assertListEqual(
             list(self.schedule.dates_between(
                 datetime.datetime(2014, 1, 1),
                 datetime.datetime(2014, 1, 14))),
-            [datetime.datetime(2014, 1, 6, 14, 0),
-             datetime.datetime(2014, 1, 13, 14, 0)])
+            [
+                tz_from_settings(datetime.datetime(2014, 1, 6, 14, 0)),
+                tz_from_settings(datetime.datetime(2014, 1, 13, 14, 0))])
 
     def test_dates_between_complex_ruleset(self):
         schedule = Schedule(
@@ -143,9 +151,10 @@ class ScheduleModelTests(TestDataMixin, TestCase):
             list(schedule.dates_between(
                 datetime.datetime(2014, 1, 1),
                 datetime.datetime(2014, 1, 9))),
-            [datetime.datetime(2014, 1, 2, 14, 0),
-             datetime.datetime(2014, 1, 4, 14, 0),
-             datetime.datetime(2014, 1, 8, 14, 0)])
+            [
+                tz_from_settings(datetime.datetime(2014, 1, 2, 14, 0)),
+                tz_from_settings(datetime.datetime(2014, 1, 4, 14, 0)),
+                tz_from_settings(datetime.datetime(2014, 1, 8, 14, 0))])
 
     # hacky workaround, remove after upstream bug is solved
     # https://github.com/django-recurrence/django-recurrence/issues/94
@@ -161,9 +170,10 @@ class ScheduleModelTests(TestDataMixin, TestCase):
             list(schedule.dates_between(
                 datetime.datetime(2014, 1, 4),
                 datetime.datetime(2014, 1, 7))),
-            [datetime.datetime(2014, 1, 4, 14, 0),
-             datetime.datetime(2014, 1, 5, 14, 0),
-             datetime.datetime(2014, 1, 6, 14, 0)])
+            [
+                tz_from_settings(datetime.datetime(2014, 1, 4, 14, 0)),
+                tz_from_settings(datetime.datetime(2014, 1, 5, 14, 0)),
+                tz_from_settings(datetime.datetime(2014, 1, 6, 14, 0))])
 
 
     # hacky workaround, remove after upstream bug is solved
@@ -180,8 +190,9 @@ class ScheduleModelTests(TestDataMixin, TestCase):
             list(schedule.dates_between(
                 datetime.datetime(2014, 1, 4),
                 datetime.datetime(2014, 1, 7))),
-            [datetime.datetime(2014, 1, 4, 14, 0),
-             datetime.datetime(2014, 1, 6, 14, 0)])
+            [
+                tz_from_settings(datetime.datetime(2014, 1, 4, 14, 0)),
+                tz_from_settings(datetime.datetime(2014, 1, 6, 14, 0))])
 
     def test_unicode(self):
         self.assertEqual(unicode(self.schedule), 'Monday - 14:00:00')
@@ -189,11 +200,13 @@ class ScheduleModelTests(TestDataMixin, TestCase):
     @mock.patch('django.utils.timezone.now', now)
     def test_save_rearange_episodes(self):
         self.assertEqual(
-            self.episode.issue_date, datetime.datetime(2015, 1, 1, 14, 0))
+            self.episode.issue_date,
+            tz_from_settings(datetime.datetime(2015, 1, 1, 14, 0)))
         self.schedule.save()
         self.episode.refresh_from_db()
         self.assertEqual(
-            self.episode.issue_date, datetime.datetime(2014, 1, 6, 14, 0))
+            self.episode.issue_date,
+            tz_from_settings(datetime.datetime(2014, 1, 6, 14, 0)))
 
     def test_verification(self):
         with self.assertRaisesMessage(
@@ -217,12 +230,14 @@ class TransmissionModelTests(TestDataMixin, TestCase):
         self.assertEqual(self.transmission.programme, self.programme)
 
     def test_start(self):
-        self.assertEqual(self.transmission.start,
-                         datetime.datetime(2015, 1, 6, 14, 0, 0))
+        self.assertEqual(
+            self.transmission.start,
+            tz_from_settings(datetime.datetime(2015, 1, 6, 14, 0, 0)))
 
     def test_end(self):
-        self.assertEqual(self.transmission.end,
-                         datetime.datetime(2015, 1, 6, 15, 0, 0))
+        self.assertEqual(
+            self.transmission.end,
+            tz_from_settings(datetime.datetime(2015, 1, 6, 15, 0, 0)))
 
     def test_get_or_create_existent_episode(self):
         transmission = Transmission(self.schedule,
@@ -246,18 +261,22 @@ class TransmissionModelTests(TestDataMixin, TestCase):
 
     def test_at(self):
         now = Transmission.at(datetime.datetime(2015, 1, 6, 14, 30, 0))
-        self.assertListEqual(
-            map(lambda t: (t.programme.slug, t.start), list(now)),
-            [(u'classic-hits', datetime.datetime(2015, 1, 6, 14, 0))])
+        self.assertListEqual(map(
+            lambda t: (t.programme.slug, t.start), list(now)),
+            [(u'classic-hits', tz_from_settings(
+                datetime.datetime(2015, 1, 6, 14, 0)))])
 
     def test_between(self):
         between = Transmission.between(datetime.datetime(2015, 1, 6, 12, 0, 0),
                                        datetime.datetime(2015, 1, 6, 17, 0, 0))
-        self.assertListEqual(
-            map(lambda t: (t.programme.slug, t.start), list(between)),
-            [(u'the-best-wine', datetime.datetime(2015, 1, 6, 12, 0)),
-             (u'local-gossips', datetime.datetime(2015, 1, 6, 13, 0)),
-             (u'classic-hits', datetime.datetime(2015, 1, 6, 14, 0))])
+        self.assertListEqual(map(
+            lambda t: (t.programme.slug, t.start), list(between)), [
+                (u'the-best-wine', tz_from_settings(
+                    datetime.datetime(2015, 1, 6, 12, 0))),
+                (u'local-gossips', tz_from_settings(
+                    datetime.datetime(2015, 1, 6, 13, 0))),
+                (u'classic-hits', tz_from_settings(
+                    datetime.datetime(2015, 1, 6, 14, 0)))])
 
 
 class ScheduleUtilsTests(TestDataMixin, TestCase):
@@ -272,24 +291,32 @@ class ScheduleUtilsTests(TestDataMixin, TestCase):
 
         dates = utils.available_dates(
             self.programme, datetime.datetime(2015, 1, 5))
-        self.assertEqual(dates.next(), datetime.datetime(2015, 1, 5, 14, 0))
-        self.assertEqual(dates.next(), datetime.datetime(2015, 1, 6, 14, 0))
-        self.assertEqual(dates.next(), datetime.datetime(2015, 1, 6, 16, 0))
+        self.assertEqual(
+            dates.next(),
+            tz_from_settings(datetime.datetime(2015, 1, 5, 14, 0)))
+        self.assertEqual(
+            dates.next(),
+            tz_from_settings(datetime.datetime(2015, 1, 6, 14, 0)))
+        self.assertEqual(
+            dates.next(),
+            tz_from_settings(datetime.datetime(2015, 1, 6, 16, 0)))
 
     def test_available_dates_none(self):
-        dates = utils.available_dates(Programme(), datetime.datetime.now())
+        dates = utils.available_dates(
+            Programme(), datetime.datetime(2018, 3, 17, 0, 0))
         with self.assertRaises(StopIteration):
             dates.next()
 
     def test_rearrenge_episodes(self):
-        utils.rearrange_episodes(self.programme, datetime.datetime(2015, 1, 1))
-        self.assertListEqual(
-            map(lambda e: e.issue_date, self.programme.episode_set.all()[:5]),
-            [datetime.datetime(2015, 1, 1, 14, 0),
-             datetime.datetime(2015, 1, 2, 14, 0),
-             datetime.datetime(2015, 1, 3, 14, 0),
-             datetime.datetime(2015, 1, 4, 14, 0),
-             datetime.datetime(2015, 1, 5, 14, 0)])
+        utils.rearrange_episodes(
+            self.programme, timezone.make_aware(datetime.datetime(2015, 1, 1)))
+        self.assertListEqual(map(
+            lambda e: e.issue_date, self.programme.episode_set.all()[:5]), [
+                tz_from_settings(datetime.datetime(2015, 1, 1, 14, 0)),
+                tz_from_settings(datetime.datetime(2015, 1, 2, 14, 0)),
+                tz_from_settings(datetime.datetime(2015, 1, 3, 14, 0)),
+                tz_from_settings(datetime.datetime(2015, 1, 4, 14, 0)),
+                tz_from_settings(datetime.datetime(2015, 1, 5, 14, 0))])
 
     def test_rearrenge_episodes_new_schedule(self):
         Schedule.objects.create(
@@ -300,11 +327,12 @@ class ScheduleUtilsTests(TestDataMixin, TestCase):
                 dtend=datetime.datetime(2015, 1, 31, 16, 0, 0),
                 rrules=[recurrence.Rule(recurrence.WEEKLY)]))
 
-        utils.rearrange_episodes(self.programme, datetime.datetime(2015, 1, 1))
-        self.assertListEqual(
-            map(lambda e: e.issue_date, self.programme.episode_set.all()[:5]),
-            [datetime.datetime(2015, 1, 1, 14, 0),
-             datetime.datetime(2015, 1, 2, 14, 0),
-             datetime.datetime(2015, 1, 3, 14, 0),
-             datetime.datetime(2015, 1, 3, 16, 0),
-             datetime.datetime(2015, 1, 4, 14, 0)])
+        utils.rearrange_episodes(
+            self.programme, timezone.make_aware(datetime.datetime(2015, 1, 1)))
+        self.assertListEqual(map(
+            lambda e: e.issue_date, self.programme.episode_set.all()[:5]), [
+                tz_from_settings(datetime.datetime(2015, 1, 1, 14, 0)),
+                tz_from_settings(datetime.datetime(2015, 1, 2, 14, 0)),
+                tz_from_settings(datetime.datetime(2015, 1, 3, 14, 0)),
+                tz_from_settings(datetime.datetime(2015, 1, 3, 16, 0)),
+                tz_from_settings(datetime.datetime(2015, 1, 4, 14, 0))])

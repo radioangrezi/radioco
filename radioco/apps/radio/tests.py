@@ -16,18 +16,22 @@
 
 from django.core.urlresolvers import reverse
 from django.test import TestCase
+from django.utils import timezone
 import datetime
+import mock
 import utils
 
 from radioco.apps.programmes.models import Programme
 
+def tz_from_settings(dt):
+    return timezone.get_default_timezone().localize(dt)
 
 def now():
-    return datetime.datetime(2014, 1, 1, 13, 30, 0)
-
+    return timezone.make_aware(datetime.datetime(2014, 1, 1, 13, 30, 0))
 
 class TestDataMixin(object):
     @classmethod
+    @mock.patch('django.utils.timezone.now', now)
     def setUpTestData(cls):
         utils.create_example_data()
         cls.programme = Programme.objects.get(name="Classic hits")
