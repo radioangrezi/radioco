@@ -43,7 +43,7 @@ def index(request):
     now = utils.timezone.now()
     transmissions = Transmission.at(now)
     try:
-        transmission = transmissions.next()
+        transmission = next(transmissions)
         end_time = transmission.end
         percentage = round(
             (now - transmission.start).total_seconds() /

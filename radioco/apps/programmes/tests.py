@@ -118,13 +118,13 @@ class EpisodeManagerTests(radioco.utils.tests.TestDataMixin, TestCase):
         episodes = self.manager.unfinished(
             self.programme, timezone.make_aware(datetime.datetime(2015, 1, 1)))
         self.assertEqual(
-            episodes.next().issue_date,
+            next(episodes).issue_date,
             timezone.make_aware(datetime.datetime(2015, 1, 1, 14, 0)))
 
     def test_unfinished_none(self):
         episodes = self.manager.unfinished(Programme())
         with self.assertRaises(StopIteration):
-            episodes.next()
+            next(episodes)
 
 
 class EpisodeModelTests(TestCase):

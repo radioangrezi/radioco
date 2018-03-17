@@ -16,8 +16,6 @@
 
 import datetime
 import mock
-import serializers
-import views
 
 from django.contrib.auth.models import User, Permission
 from django.test import TestCase
@@ -25,6 +23,8 @@ from django.test import TestCase
 from rest_framework import status
 from rest_framework.test import APITestCase, APIRequestFactory
 
+from radioco.apps.api import serializers
+from radioco.apps.api import views
 from radioco.apps.programmes.models import Programme, Episode
 from radioco.apps.schedules.models import Schedule, Transmission
 import radioco.utils.tests
@@ -38,9 +38,11 @@ class TestSerializers(radioco.utils.tests.TestDataMixin, TestCase):
     def test_programme(self):
         serializer = serializers.ProgrammeSerializer(
             self.programme, context={'request': None})
-        self.assertListEqual(serializer.data.keys(), [
-            'name', 'synopsis', 'photo', 'language', 'website', 'category',
-            'created_at', 'updated_at', 'url'])
+        self.assertListEqual(
+            list(serializer.data.keys()),
+            [
+                'name', 'synopsis', 'photo', 'language', 'website', 'category',
+                'created_at', 'updated_at', 'url'])
 
     def test_programme_photo_url(self):
         serializer = serializers.ProgrammeSerializer(
@@ -60,9 +62,11 @@ class TestSerializers(radioco.utils.tests.TestDataMixin, TestCase):
     def test_episode(self):
         serializer = serializers.EpisodeSerializer(
             self.episode, context={'request': None})
-        self.assertListEqual(serializer.data.keys(), [
-            'programme', 'title', 'summary', 'issue_date', 'season',
-            'number_in_season', 'created_at', 'updated_at', 'url'])
+        self.assertListEqual(
+            list(serializer.data.keys()),
+            [
+                'programme', 'title', 'summary', 'issue_date', 'season',
+                'number_in_season', 'created_at', 'updated_at', 'url'])
 
     def test_episode_programme(self):
         serializer = serializers.EpisodeSerializer(
@@ -88,8 +92,9 @@ class TestSerializers(radioco.utils.tests.TestDataMixin, TestCase):
             context={'request': None})
         data = serializer.data
 
-        self.assertListEqual(data.keys(), [
-            'start', 'end', 'type', 'programme', 'episode', 'schedule'])
+        self.assertListEqual(
+            list(data.keys()),
+            ['start', 'end', 'type', 'programme', 'episode', 'schedule'])
 
         self.assertEqual(data['start'], '2015-01-06T14:00:00+01:00')
         self.assertEqual(data['programme']['name'], u'Classic hits')
@@ -196,7 +201,7 @@ class TestAPI(radioco.utils.tests.TestDataMixin, APITestCase):
 
     def test_transmission_after(self):
         response = self.client.get(
-            '/api/2/transmissions', {'after': datetime.date(2015, 02, 01)})
+            '/api/2/transmissions', {'after': datetime.date(2015, 2, 1)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             sorted(response.data, key=lambda t: t['start'])[0]['start'],
@@ -205,7 +210,7 @@ class TestAPI(radioco.utils.tests.TestDataMixin, APITestCase):
     @mock.patch('django.utils.timezone.now', mock_now)
     def test_transmission_before(self):
         response = self.client.get(
-            '/api/2/transmissions', {'before': datetime.date(2015, 01, 14)})
+            '/api/2/transmissions', {'before': datetime.date(2015, 1, 14)})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             sorted(response.data, key=lambda t: t['start'])[-1]['start'],
@@ -216,5 +221,5 @@ class TestAPI(radioco.utils.tests.TestDataMixin, APITestCase):
         response = self.client.get('/api/2/transmissions/now')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertListEqual(
-            map(lambda t: (t['programme']['name'], t['start']), response.data),
+            [(t['programme']['name'], t['start']) for t in response.data],
             [(u'Classic hits', '2015-01-06T14:00:00+01:00')])

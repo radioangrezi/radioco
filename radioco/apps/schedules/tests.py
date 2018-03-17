@@ -50,12 +50,18 @@ class SlotModelTests(TestCase):
     def test_runtime(self):
         self.assertEqual(self.slot.runtime, datetime.timedelta(minutes=60))
 
-    def test_validation(self):
-        with self.assertRaisesMessage(
-                ValidationError,
-                "{'runtime': [u'This field cannot be null.'], "
-                "'programme': [u'This field cannot be null.']}"):
-            Slot().clean_fields()
+    def test_validation_programme_invalid(self):
+        self.slot.programme = None
+        with self.assertRaises(ValidationError):
+            self.slot.clean_fields()
+
+    def test_validation_runtime_invalid(self):
+        self.slot.runtime = None
+        with self.assertRaises(ValidationError):
+            self.slot.clean_fields()
+
+    def test_validation_valid(self):
+        self.assertIsNone(self.slot.clean_fields())
 
     def test_str(self):
         self.assertEqual(str(self.slot), "Test programme (1:00:00)")
@@ -210,8 +216,8 @@ class ScheduleModelTests(radioco.utils.tests.TestDataMixin, TestCase):
                 radioco.utils.timezone.make_aware_from_settings(
                     datetime.datetime(2014, 1, 6, 14, 0))])
 
-    def test_unicode(self):
-        self.assertEqual(unicode(self.schedule), 'Monday - 14:00:00')
+    def test_str(self):
+        self.assertEqual(str(self.schedule), 'Monday - 14:00:00')
 
     @mock.patch('django.utils.timezone.now', radioco.utils.tests.now)
     def test_save_rearange_episodes(self):
@@ -228,12 +234,18 @@ class ScheduleModelTests(radioco.utils.tests.TestDataMixin, TestCase):
             radioco.utils.timezone.make_aware_from_settings(
                 datetime.datetime(2014, 1, 6, 14, 0)))
 
-    def test_verification(self):
-        with self.assertRaisesMessage(
-            ValidationError,
-            "{'slot': [u'This field cannot be null.'], "
-            "'type': [u'This field cannot be blank.']}"):
-            Schedule().clean_fields()
+    def test_validation_slot_invalid(self):
+        self.schedule.slot = None
+        with self.assertRaises(ValidationError):
+            self.schedule.clean_fields()
+
+    def test_validation_type_invalid(self):
+        self.schedule.type = None
+        with self.assertRaises(ValidationError):
+            self.schedule.clean_fields()
+
+    def test_validation_valid(self):
+        self.assertIsNone(self.schedule.clean_fields())
 
 
 class TransmissionModelTests(radioco.utils.tests.TestDataMixin, TestCase):
@@ -283,25 +295,25 @@ class TransmissionModelTests(radioco.utils.tests.TestDataMixin, TestCase):
 
     def test_at(self):
         now = Transmission.at(datetime.datetime(2015, 1, 6, 14, 30, 0))
-        self.assertListEqual(map(
-            lambda t: (t.programme.slug, t.start), list(now)),
+        self.assertListEqual(
+            [(t.programme.slug, t.start) for t in now],
             [(u'classic-hits', radioco.utils.timezone.make_aware_from_settings(
                 datetime.datetime(2015, 1, 6, 14, 0)))])
 
     def test_between(self):
         between = Transmission.between(datetime.datetime(2015, 1, 6, 12, 0, 0),
                                        datetime.datetime(2015, 1, 6, 17, 0, 0))
-        self.assertListEqual(map(
-            lambda t: (t.programme.slug, t.start), list(between)), [
-                (u'the-best-wine',
-                 radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 6, 12, 0))),
-                (u'local-gossips',
-                 radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 6, 13, 0))),
-                (u'classic-hits',
-                 radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 6, 14, 0)))])
+        self.assertListEqual(
+            [(t.programme.slug, t.start) for t in between],
+            [(u'the-best-wine',
+              radioco.utils.timezone.make_aware_from_settings(
+                  datetime.datetime(2015, 1, 6, 12, 0))),
+             (u'local-gossips',
+              radioco.utils.timezone.make_aware_from_settings(
+                  datetime.datetime(2015, 1, 6, 13, 0))),
+             (u'classic-hits',
+              radioco.utils.timezone.make_aware_from_settings(
+                  datetime.datetime(2015, 1, 6, 14, 0)))])
 
 
 class ScheduleUtilsTests(radioco.utils.tests.TestDataMixin, TestCase):
@@ -316,31 +328,29 @@ class ScheduleUtilsTests(radioco.utils.tests.TestDataMixin, TestCase):
 
         dates = utils.available_dates(
             self.programme, datetime.datetime(2015, 1, 5))
-        self.assertEqual(
-            dates.next(),
-            radioco.utils.timezone.make_aware_from_settings(
-                datetime.datetime(2015, 1, 5, 14, 0)))
-        self.assertEqual(
-            dates.next(),
-            radioco.utils.timezone.make_aware_from_settings(
-                datetime.datetime(2015, 1, 6, 14, 0)))
-        self.assertEqual(
-            dates.next(),
-            radioco.utils.timezone.make_aware_from_settings(
-                datetime.datetime(2015, 1, 6, 16, 0)))
+
+        self.assertEqual(next(dates),
+                         radioco.utils.timezone.make_aware_from_settings(
+                             datetime.datetime(2015, 1, 5, 14, 0)))
+        self.assertEqual(next(dates),
+                         radioco.utils.timezone.make_aware_from_settings(
+                             datetime.datetime(2015, 1, 6, 14, 0)))
+        self.assertEqual(next(dates),
+                         radioco.utils.timezone.make_aware_from_settings(
+                             datetime.datetime(2015, 1, 6, 16, 0)))
 
     def test_available_dates_none(self):
         dates = utils.available_dates(
             Programme(), datetime.datetime(2018, 3, 17, 0, 0))
         with self.assertRaises(StopIteration):
-            dates.next()
+            next(dates)
 
     def test_rearrenge_episodes(self):
         utils.rearrange_episodes(
             self.programme,
             django.utils.timezone.make_aware(datetime.datetime(2015, 1, 1)))
-        self.assertListEqual(map(
-            lambda e: e.issue_date, self.programme.episode_set.all()[:5]),
+        self.assertListEqual(
+            [e.issue_date for e in self.programme.episode_set.all()[:5]],
             [
                 radioco.utils.timezone.make_aware_from_settings(
                     datetime.datetime(2015, 1, 1, 14, 0)),
@@ -365,8 +375,8 @@ class ScheduleUtilsTests(radioco.utils.tests.TestDataMixin, TestCase):
         utils.rearrange_episodes(
             self.programme,
             django.utils.timezone.make_aware(datetime.datetime(2015, 1, 1)))
-        self.assertListEqual(map(
-            lambda e: e.issue_date, self.programme.episode_set.all()[:5]),
+        self.assertListEqual(
+            [e.issue_date for e in self.programme.episode_set.all()[:5]],
             [
                 radioco.utils.timezone.make_aware_from_settings(
                     datetime.datetime(2015, 1, 1, 14, 0)),

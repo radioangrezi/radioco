@@ -32,8 +32,8 @@ class Slot(models.Model):
     class Meta:
         ordering = ["programme__name"]
 
-    def __unicode__(self):
-        return "{:s} ({:s})".format(self.programme.name, self.runtime)
+    def __str__(self):
+        return "{:s} ({:s})".format(self.programme.name, str(self.runtime))
 
 
 class Schedule(models.Model):
@@ -110,12 +110,12 @@ class Schedule(models.Model):
         return self.recurrences.after(after, inc)
 
     def save(self, *args, **kwargs):
-        import utils
+        import radioco.apps.schedules.utils
         super(Schedule, self).save(*args, **kwargs)
-        utils.rearrange_episodes(
+        radioco.apps.schedules.utils.rearrange_episodes(
             self.slot.programme, django.utils.timezone.now())
 
-    def __unicode__(self):
+    def __str__(self):
         return ' - '.join(
             [self.start.strftime('%A'), self.start.strftime('%X')])
 

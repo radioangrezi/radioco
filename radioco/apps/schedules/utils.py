@@ -18,8 +18,9 @@ def available_dates(programme, after):
             break;
 
         # there may be two or more parallel slots
-        for dates in filter(lambda c: c == candidate, candidates):
-            yield dates
+ #       for dates in filter(lambda c: c == candidate, candidates):
+ #           yield dates
+        yield candidate
         after = candidate
 
 
@@ -31,8 +32,8 @@ def rearrange_episodes(programme, after):
         # Further dates and episodes available -> re-order
         while True:
             try:
-                date = dates.next()
-                episode = episodes.next()
+                date = next(dates)
+                episode = next(episodes)
             except StopIteration:
                 break
 
@@ -42,7 +43,7 @@ def rearrange_episodes(programme, after):
         # No further dates available -> unschedule
         while True:
             try:
-                episode = episodes.next()
+                episode = next(episodes)
             except StopIteration:
                 break
 

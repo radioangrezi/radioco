@@ -72,26 +72,29 @@ class Programme(models.Model):
     )
 
     name = models.CharField(
-        max_length=100, unique=True, verbose_name=_("name"),
+        max_length=100,
+        unique=True,
+        verbose_name=_("name"),
         help_text=_(
             "Please DON'T change this value. It's used to build URL's."))
     announcers = models.ManyToManyField(
         User, blank=True, through='Role', verbose_name=_("announcers"))
     synopsis = RichTextField(blank=True, verbose_name=_("synopsis"))
-    photo = models.ImageField(
-        upload_to='photos/', default='defaults/default-programme-photo.jpg', verbose_name=_("photo")
-    )
-    language = models.CharField(
-        default=PROGRAMME_LANGUAGES[0][0], verbose_name=_("language"),
-        choices=map(lambda (k, v): (k, _(v)), PROGRAMME_LANGUAGES), max_length=7
-    )
+    photo = models.ImageField(upload_to='photos/',
+                              default='defaults/default-programme-photo.jpg',
+                              verbose_name=_("photo"))
+    language = models.CharField(default=PROGRAMME_LANGUAGES[0][0],
+                                verbose_name=_("language"),
+                                choices=PROGRAMME_LANGUAGES,
+                                max_length=7)
     # XXX ensure not decreasing
     current_season = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)], verbose_name=_("current season")
-    )
-    category = models.CharField(
-        blank=True, null=True, max_length=50, choices=CATEGORY_CHOICES, verbose_name=_("category")
-    )
+        validators=[MinValueValidator(1)], verbose_name=_("current season"))
+    category = models.CharField(blank=True,
+                                null=True,
+                                max_length=50,
+                                choices=CATEGORY_CHOICES,
+                                verbose_name=_("category"))
     website = models.URLField(blank=True)
     slug = models.SlugField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -105,7 +108,7 @@ class Programme(models.Model):
     def get_absolute_url(self):
         return reverse('programmes:detail', args=[self.slug])
 
-    def __unicode__(self):
+    def __str__(self):
         return u"%s" % (self.name)
 
 
@@ -182,7 +185,7 @@ class Episode(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    def __unicode__(self):
+    def __str__(self):
         return u"{:d}x{:d} {:s}".format(self.season,
                                         self.number_in_season,
                                         self.title or self.programme.name)

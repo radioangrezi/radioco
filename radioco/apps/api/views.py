@@ -1,13 +1,16 @@
-from radioco.apps.programmes.models import Programme, Episode
-from radioco.apps.schedules.models import Slot, Schedule, Transmission
+import datetime
+
 from django import forms
 from django import utils
 from django.shortcuts import get_object_or_404
+
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
-import datetime
-import serializers
+
+from radioco.apps.api import serializers
+from radioco.apps.programmes.models import Programme, Episode
+from radioco.apps.schedules.models import Slot, Schedule, Transmission
 
 
 class ProgrammeViewSet(viewsets.ReadOnlyModelViewSet):
