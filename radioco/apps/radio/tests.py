@@ -23,9 +23,6 @@ import utils
 
 from radioco.apps.programmes.models import Programme
 
-def tz_from_settings(dt):
-    return timezone.get_default_timezone().localize(dt)
-
 def now():
     return timezone.make_aware(datetime.datetime(2014, 1, 1, 13, 30, 0))
 

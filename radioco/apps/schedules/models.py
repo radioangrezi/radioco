@@ -16,12 +16,12 @@
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
 from recurrence.fields import RecurrenceField
+import django.utils.timezone
 import datetime
 
 from radioco.apps.programmes.models import Episode, Programme
-from radioco.utils.timezone import make_tz_aware
+import radioco.utils.timezone
 
 
 class Slot(models.Model):
@@ -64,7 +64,7 @@ class Schedule(models.Model):
     def __init__(self, *args, **kwargs):
         super(Schedule, self).__init__(*args, **kwargs)
 
-        self.start = make_tz_aware(self.start)
+        self.start = radioco.utils.timezone.make_aware(self.start)
 
         # hacky workaround, remove after upstream bug is solved
         # https://github.com/django-recurrence/django-recurrence/issues/94
@@ -80,7 +80,7 @@ class Schedule(models.Model):
 
     @start.setter
     def start(self, start_date):
-        start_date = make_tz_aware(start_date)
+        start_date = radioco.utils.timezone.make_aware(start_date)
 
         self.recurrences.dtstart = start_date
 
@@ -94,25 +94,26 @@ class Schedule(models.Model):
         """
             Return a sorted list of dates between after and before
         """
-        after = make_tz_aware(after)
-        before = make_tz_aware(before)
+        after = radioco.utils.timezone.make_aware(after)
+        before = radioco.utils.timezone.make_aware(before)
 
         return self.recurrences.between(after, before, inc=True)
 
     def date_before(self, before):
-        before = make_tz_aware(before)
+        before = radioco.utils.timezone.make_aware(before)
 
         return self.recurrences.before(before, inc=True)
 
     def date_after(self, after, inc=True):
-        after = make_tz_aware(after)
+        after = radioco.utils.timezone.make_aware(after)
 
         return self.recurrences.after(after, inc)
 
     def save(self, *args, **kwargs):
         import utils
         super(Schedule, self).save(*args, **kwargs)
-        utils.rearrange_episodes(self.slot.programme, timezone.now())
+        utils.rearrange_episodes(
+            self.slot.programme, django.utils.timezone.now())
 
     def __unicode__(self):
         return ' - '.join(
@@ -133,7 +134,7 @@ class Schedule(models.Model):
 class Transmission(object):
     @classmethod
     def at(cls, at):
-        at = make_tz_aware(at)
+        at = radioco.utils.timezone.make_aware(at)
 
         schedules = Schedule.objects.all()
         for schedule in schedules:
@@ -153,8 +154,7 @@ class Transmission(object):
                 yield cls(schedule, date)
 
     def __init__(self, schedule, date):
-        if not date.tzinfo:
-            date = timezone.make_aware(date)
+        date = radioco.utils.timezone.make_aware(date)
 
         if not schedule.date_before(date) == date:
             raise ValueError("no scheduled transmission on given date")
