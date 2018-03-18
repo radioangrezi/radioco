@@ -2,11 +2,14 @@ import datetime
 
 from django import forms
 from django import utils
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 
 from rest_framework import permissions, viewsets
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
+
+from django_filters.fields import IsoDateTimeField
 
 from radioco.apps.api import serializers
 from radioco.apps.programmes.models import Programme, Episode
@@ -36,13 +39,13 @@ class ScheduleViewSet(viewsets.ModelViewSet):
 
 
 class TransmissionForm(forms.Form):
-    after = forms.DateField(required=False)
-    before = forms.DateField(required=False)
+    after = IsoDateTimeField(required=False)
+    before = IsoDateTimeField(required=False)
 
     def clean_after(self):
         after = self.cleaned_data.get('after')
         if after is None:
-            return utils.timezone.now().replace(day=1).date()
+            return utils.timezone.now().replace(day=1)
         return after
 
     def clean_before(self):
@@ -54,18 +57,16 @@ class TransmissionForm(forms.Form):
 
 
 class TransmissionViewSet(viewsets.GenericViewSet):
-    queryset = Schedule.objects.all()
     serializer_class = serializers.TransmissionSerializer
 
     def list(self, request):
-        data = TransmissionForm(request.query_params)
-        data.is_valid()
+        params = TransmissionForm(request.query_params)
+        if not params.is_valid():
+            raise ValidationError(params.errors)
 
-        transmissions = Transmission.between(
-            datetime.datetime.combine(
-                data.cleaned_data.get('after'), datetime.time(0)),
-            datetime.datetime.combine(
-                data.cleaned_data.get('before'), datetime.time(23, 59, 59)))
+        transmissions = Transmission.between(params.cleaned_data.get('after'),
+                                             params.cleaned_data.get('before'))
+
         serializer = self.get_serializer(
             transmissions, many=True, context={'request': request})
         return Response(serializer.data)
@@ -77,3 +78,6 @@ class TransmissionViewSet(viewsets.GenericViewSet):
         serializer = self.get_serializer(
             transmissions, many=True, context={'request': request})
         return Response(serializer.data)
+
+    def get_queryset(self):
+        pass

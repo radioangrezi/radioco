@@ -14,11 +14,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+
+from pytz.exceptions import NonExistentTimeError
+import datetime
+
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from recurrence.fields import RecurrenceField
 import django.utils.timezone
-import datetime
+
+from recurrence.fields import RecurrenceField
 
 from radioco.apps.programmes.models import Episode, Programme
 import radioco.utils.timezone
@@ -64,7 +68,7 @@ class Schedule(models.Model):
     def __init__(self, *args, **kwargs):
         super(Schedule, self).__init__(*args, **kwargs)
 
-        self.start = radioco.utils.timezone.make_aware(self.start)
+        self.start = radioco.utils.timezone.make_naive(self.start)
 
         # hacky workaround, remove after upstream bug is solved
         # https://github.com/django-recurrence/django-recurrence/issues/94
@@ -80,7 +84,7 @@ class Schedule(models.Model):
 
     @start.setter
     def start(self, start_date):
-        start_date = radioco.utils.timezone.make_aware(start_date)
+        start_date = radioco.utils.timezone.make_naive(start_date)
 
         self.recurrences.dtstart = start_date
 
@@ -94,18 +98,18 @@ class Schedule(models.Model):
         """
             Return a sorted list of dates between after and before
         """
-        after = radioco.utils.timezone.make_aware(after)
-        before = radioco.utils.timezone.make_aware(before)
+        after = radioco.utils.timezone.make_naive(after)
+        before = radioco.utils.timezone.make_naive(before)
 
         return self.recurrences.between(after, before, inc=True)
 
     def date_before(self, before):
-        before = radioco.utils.timezone.make_aware(before)
+        before = radioco.utils.timezone.make_naive(before)
 
         return self.recurrences.before(before, inc=True)
 
     def date_after(self, after, inc=True):
-        after = radioco.utils.timezone.make_aware(after)
+        after = radioco.utils.timezone.make_naive(after)
 
         return self.recurrences.after(after, inc)
 
@@ -138,7 +142,7 @@ class Transmission(object):
 
         schedules = Schedule.objects.all()
         for schedule in schedules:
-            date = schedule.date_before(at)
+            date = radioco.utils.timezone.make_aware(schedule.date_before(at))
             if date is None:
                 continue
             if at < date + schedule.runtime:
@@ -151,12 +155,16 @@ class Transmission(object):
 
         for schedule in schedules:
             for date in schedule.dates_between(after, before):
-                yield cls(schedule, date)
+                try:
+                    yield cls(schedule, date)
+                except NonExistentTimeError:
+                    pass
 
     def __init__(self, schedule, date):
         date = radioco.utils.timezone.make_aware(date)
 
-        if not schedule.date_before(date) == date:
+        if not (schedule.date_before(date) ==
+                radioco.utils.timezone.make_naive(date)):
             raise ValueError("no scheduled transmission on given date")
 
         # we need to track the schedule id for admin calendar
