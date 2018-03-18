@@ -152,7 +152,7 @@ BOWER_PATH = os.path.join(SITE_ROOT, '..', 'node_modules', '.bin', 'bower')
 BOWER_INSTALLED_APPS = (
     'jqueryui#1.11.4',
     'jquery#2.2.1',
-    'fullcalendar#2.6.1',
+    'fullcalendar#3.9.0'
 )
 
 STATICFILES_FINDERS = (
