@@ -287,7 +287,7 @@ class TransmissionModelTests(radioco.utils.tests.TestDataMixin, TestCase):
               radioco.utils.timezone.make_aware_from_settings(
                   datetime.datetime(2015, 1, 6, 14, 0)))])
 
-    def test_between_time_change(self):
+    def test_between_time_change_skip(self):
         schedule = Schedule(
             slot=self.slot,
             recurrences=recurrence.Recurrence(
@@ -298,6 +298,26 @@ class TransmissionModelTests(radioco.utils.tests.TestDataMixin, TestCase):
             datetime.datetime(2018, 3, 25, 5, 0, 0),
             schedules=[schedule])
         self.assertEqual(list(between), [])
+
+    def test_between_time_change_stable(self):
+        schedule = Schedule(
+            slot=self.slot,
+            recurrences=recurrence.Recurrence(
+                dtstart=datetime.datetime(2018, 3, 24, 2, 30, 0),
+                rrules=[recurrence.Rule(recurrence.DAILY)]))
+        between = Transmission.between(
+            datetime.datetime(2018, 3, 24, 0, 0, 0),
+            datetime.datetime(2018, 3, 26, 5, 0, 0),
+            schedules=[schedule])
+        self.assertEqual(
+            [t.start for t in between],
+            [
+                datetime.datetime(
+                    2018, 3, 24, 2, 30,
+                    tzinfo=datetime.timezone(datetime.timedelta(hours=1))),
+                datetime.datetime(
+                    2018, 3, 26, 2, 30,
+                    tzinfo=datetime.timezone(datetime.timedelta(hours=2)))])
 
 
 class ScheduleUtilsTests(radioco.utils.tests.TestDataMixin, TestCase):
