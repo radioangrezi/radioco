@@ -1,5 +1,4 @@
 from django.db import transaction
-from django.utils import timezone
 
 from radioco.apps.programmes.models import Episode
 from radioco.apps.schedules.models import Schedule
@@ -16,11 +15,11 @@ def available_dates(programme, after):
         try:
             candidate = min(candidates)
         except ValueError:
-            break;
+            break
 
-        # there may be two or more parallel slots
- #       for dates in filter(lambda c: c == candidate, candidates):
- #           yield dates
+        # XXX there may be two or more parallel slots
+        #       for dates in filter(lambda c: c == candidate, candidates):
+        #       yield dates
         yield candidate
         after = candidate
 

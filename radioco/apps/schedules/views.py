@@ -15,8 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from django.shortcuts import render
-import datetime
-import json
 
 from radioco.apps.global_settings.models import CalendarConfiguration
 

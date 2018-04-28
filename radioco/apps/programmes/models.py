@@ -18,7 +18,6 @@ from ckeditor.fields import RichTextField
 
 from django.conf import settings
 from django.contrib.auth.models import User
-from django.core.exceptions import FieldError
 from django.core.urlresolvers import reverse
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -146,7 +145,6 @@ class EpisodeManager(models.Manager):
 
         return episode
 
-
     def last(self, programme):
         episodes = Episode.objects.filter(programme=programme)
         return episodes.order_by("-season", "-number_in_season").first()
@@ -195,7 +193,10 @@ class Episode(models.Model):
 class Participant(models.Model):
     person = models.ForeignKey(User, verbose_name=_("person"))
     episode = models.ForeignKey(Episode, verbose_name=_("episode"))
-    role = models.CharField(default=NOT_SPECIFIED, verbose_name=_("role"), choices=ROLES, max_length=2)
+    role = models.CharField(default=NOT_SPECIFIED,
+                            verbose_name=_("role"),
+                            choices=ROLES,
+                            max_length=2)
     description = models.TextField(blank=True, verbose_name=_("description"))
 
     class Meta:
@@ -213,7 +214,10 @@ class Participant(models.Model):
 class Role(models.Model):
     person = models.ForeignKey(User, verbose_name=_("person"))
     programme = models.ForeignKey(Programme, verbose_name=_("programme"))
-    role = models.CharField(default=NOT_SPECIFIED, verbose_name=_("role"), choices=ROLES, max_length=2)
+    role = models.CharField(default=NOT_SPECIFIED,
+                            verbose_name=_("role"),
+                            choices=ROLES,
+                            max_length=2)
     description = models.TextField(blank=True, verbose_name=_("description"))
     date_joined = models.DateField(auto_now_add=True)
 
@@ -230,7 +234,8 @@ class Role(models.Model):
 
 
 class Podcast(models.Model):
-    episode = models.OneToOneField(Episode, primary_key=True, related_name='podcast')
+    episode = models.OneToOneField(
+        Episode, primary_key=True, related_name='podcast')
     url = models.CharField(max_length=2048)
     mime_type = models.CharField(max_length=20)
     length = models.PositiveIntegerField()  # bytes

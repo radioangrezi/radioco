@@ -19,14 +19,10 @@ import mock
 
 from django.contrib.admin.options import ModelAdmin
 from django.contrib.admin.sites import AdminSite
-from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError, FieldError
-from django.core.urlresolvers import reverse
 from django.test import TestCase
 from django.utils import timezone
 
-from radioco.apps.programmes.models import (
-    Programme, Episode, EpisodeManager, Role)
+from radioco.apps.programmes.models import Programme, Episode, EpisodeManager
 from radioco.utils.tests import TestDataMixin, now
 
 
@@ -85,7 +81,6 @@ class EpisodeManagerTests(TestDataMixin, TestCase):
         self.episode = self.manager.create_episode(
             timezone.make_aware(datetime.datetime(2014, 6, 14, 10, 0, 0)),
             self.programme)
-
 
     def test_create_episode(self):
         self.assertIsInstance(self.episode, Episode)

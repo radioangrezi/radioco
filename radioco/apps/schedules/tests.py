@@ -174,7 +174,6 @@ class ScheduleModelTests(TestDataMixin, TestCase):
              timezone.make_aware(datetime.datetime(2014, 1, 5, 14, 0)),
              timezone.make_aware(datetime.datetime(2014, 1, 6, 14, 0))])
 
-
     # hacky workaround, remove after upstream bug is solved
     # https://github.com/django-recurrence/django-recurrence/issues/94
     def test_dates_between_exdate(self):
@@ -259,7 +258,6 @@ class TransmissionModelTests(TestDataMixin, TestCase):
             timezone.make_aware(datetime.datetime(2015, 1, 1, 14, 30)))
         self.assertEqual(transmission._get_or_create_episode(), self.episode)
 
-
     def test_get_or_create_nonexistent_episode(self):
         transmission = Transmission(
             self.schedule,
@@ -325,7 +323,7 @@ class ScheduleUtilsTests(TestDataMixin, TestCase):
         Schedule.objects.create(
             slot=self.slot,
             type="L",
-            recurrences= recurrence.Recurrence(
+            recurrences=recurrence.Recurrence(
                 dtstart=datetime.datetime(2015, 1, 6, 16, 0, 0),
                 dtend=datetime.datetime(2015, 1, 31, 16, 0, 0),
                 rrules=[recurrence.Rule(recurrence.WEEKLY)]))
@@ -367,7 +365,7 @@ class ScheduleUtilsTests(TestDataMixin, TestCase):
         Schedule.objects.create(
             slot=self.slot,
             type="L",
-            recurrences= recurrence.Recurrence(
+            recurrences=recurrence.Recurrence(
                 dtstart=datetime.datetime(2015, 1, 3, 16, 0, 0),
                 dtend=datetime.datetime(2015, 1, 31, 16, 0, 0),
                 rrules=[recurrence.Rule(recurrence.WEEKLY)]))

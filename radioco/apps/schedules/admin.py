@@ -17,10 +17,6 @@
 
 from radioco.apps.schedules.models import Schedule, Slot
 from django.contrib import admin
-try:
-    from django.utils.encoding import force_unicode
-except ImportError:
-    from django.utils.encoding import force_text as force_unicode
 
 
 @admin.register(Slot)
