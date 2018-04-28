@@ -15,9 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from pytz.exceptions import NonExistentTimeError
-import datetime
-
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from django.utils import timezone
@@ -25,6 +22,9 @@ from django.utils import timezone
 from recurrence.fields import RecurrenceField
 
 from radioco.apps.programmes.models import Episode, Programme
+from radioco.apps.schedules import recurrence
+
+recurrence.patch()
 
 
 class Slot(models.Model):
@@ -64,13 +64,6 @@ class Schedule(models.Model):
         verbose_name=_("source"),
         help_text=_("It is used when is a broadcast."))
 
-    def __init__(self, *args, **kwargs):
-        super(Schedule, self).__init__(*args, **kwargs)
-
-        # hacky workaround, remove after upstream bug is solved
-        # https://github.com/django-recurrence/django-recurrence/issues/94
-        self.__fix_rdates__()
-
     @property
     def runtime(self):
         return self.slot.runtime
@@ -93,35 +86,13 @@ class Schedule(models.Model):
         """
             Return a sorted list of dates between after and before
         """
-        if timezone.is_aware(after):
-            after = timezone.make_naive(after)
-
-        if timezone.is_aware(before):
-            before = timezone.make_naive(before)
-
-        for dt in self.recurrences.between(after, before, inc=True):
-            try:
-                yield timezone.make_aware(dt)
-            except NonExistentTimeError:
-                pass
+        return self.recurrences.between(after, before, inc=True)
 
     def date_before(self, before):
-        if timezone.is_aware(before):
-            before = timezone.make_naive(before)
-
-        dt = self.recurrences.before(before, inc=True)
-        if dt:
-            return timezone.make_aware(dt)
-        return None
+        return self.recurrences.before(before, inc=True)
 
     def date_after(self, after, inc=True):
-        if timezone.is_aware(after):
-            after = timezone.make_naive(after)
-
-        dt = self.recurrences.after(after, inc)
-        if dt:
-            return timezone.make_aware(dt)
-        return None
+        return self.recurrences.after(after, inc=inc)
 
     def save(self, *args, **kwargs):
         import radioco.apps.schedules.utils
@@ -132,17 +103,6 @@ class Schedule(models.Model):
     def __str__(self):
         return ' - '.join(
             [self.start.strftime('%A'), self.start.strftime('%X')])
-
-    def __fix_rdates__(self):
-        def fix_rdate(rdate):
-            return datetime.datetime.combine(
-                rdate, datetime.time(self.start.hour,
-                                     self.start.minute,
-                                     self.start.second,
-                                     self.start.microsecond,
-                                     self.start.tzinfo))
-        self.recurrences.rdates = map(fix_rdate, self.recurrences.rdates)
-        self.recurrences.exdates = map(fix_rdate, self.recurrences.exdates)
 
 
 class Transmission(object):
