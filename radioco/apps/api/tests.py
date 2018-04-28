@@ -20,6 +20,7 @@ import mock
 from django.contrib.auth.models import User, Permission
 from django.core.exceptions import ValidationError
 from django.test import TestCase
+from django.utils import timezone
 
 from rest_framework import status
 from rest_framework.test import APITestCase, APIRequestFactory
@@ -28,14 +29,10 @@ from radioco.apps.api import serializers
 from radioco.apps.api import views
 from radioco.apps.programmes.models import Programme, Episode
 from radioco.apps.schedules.models import Schedule, Transmission
-import radioco.utils.tests
+from radioco.utils.tests import TestDataMixin, now
 
 
-def mock_now():
-    return datetime.datetime(2015, 1, 6, 14, 30, 0)
-
-
-class TestSerializers(radioco.utils.tests.TestDataMixin, TestCase):
+class TestSerializers(TestDataMixin, TestCase):
     def test_programme(self):
         serializer = serializers.ProgrammeSerializer(
             self.programme, context={'request': None})
@@ -88,8 +85,9 @@ class TestSerializers(radioco.utils.tests.TestDataMixin, TestCase):
 
     def test_transmission(self):
         serializer = serializers.TransmissionSerializer(
-            Transmission(self.schedule,
-                         datetime.datetime(2015, 1, 6, 14, 0, 0)),
+            Transmission(
+                self.schedule,
+                timezone.make_aware(datetime.datetime(2015, 1, 6, 14, 0, 0))),
             context={'request': None})
         data = serializer.data
 
@@ -104,7 +102,7 @@ class TestSerializers(radioco.utils.tests.TestDataMixin, TestCase):
         self.assertEqual(data['schedule'], 6)
 
 
-class TestAPI(radioco.utils.tests.TestDataMixin, APITestCase):
+class TestAPI(TestDataMixin, APITestCase):
     def setUp(self):
         admin = User.objects.create_user(
             username='klaus', password='topsecret')
@@ -194,7 +192,9 @@ class TestAPI(radioco.utils.tests.TestDataMixin, APITestCase):
             start='2017-12-26T03:00:00', type='L'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-    @mock.patch('django.utils.timezone.now', mock_now)
+    @mock.patch(
+        'django.utils.timezone.now',
+        lambda: timezone.make_aware(datetime.datetime(2015, 1, 6, 14, 30, 0)))
     def test_transmissions(self):
         response = self.client.get('/api/2/transmissions')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
@@ -209,7 +209,7 @@ class TestAPI(radioco.utils.tests.TestDataMixin, APITestCase):
             sorted(response.data, key=lambda t: t['start'])[0]['start'],
             '2015-02-01T08:00:00+01:00')
 
-    @mock.patch('django.utils.timezone.now', mock_now)
+    @mock.patch('django.utils.timezone.now', now)
     def test_transmission_before(self):
         response = self.client.get(
             '/api/2/transmissions',
@@ -225,7 +225,9 @@ class TestAPI(radioco.utils.tests.TestDataMixin, APITestCase):
                 '/api/2/transmissions',
                 {'after': 'invalid date format'})
 
-    @mock.patch('django.utils.timezone.now', mock_now)
+    @mock.patch(
+        'django.utils.timezone.now',
+        lambda: timezone.make_aware(datetime.datetime(2015, 1, 6, 14, 30, 0)))
     def test_transmission_now(self):
         response = self.client.get('/api/2/transmissions/now')
         self.assertEqual(response.status_code, status.HTTP_200_OK)

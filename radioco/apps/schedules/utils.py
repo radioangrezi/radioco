@@ -1,9 +1,8 @@
 from django.db import transaction
+from django.utils import timezone
 
 from radioco.apps.programmes.models import Episode
 from radioco.apps.schedules.models import Schedule
-
-import radioco.utils.timezone
 
 
 def available_dates(programme, after):
@@ -39,7 +38,7 @@ def rearrange_episodes(programme, after):
             except StopIteration:
                 break
 
-            episode.issue_date = radioco.utils.timezone.make_aware(date)
+            episode.issue_date = date
             episode.save()
 
         # No further dates available -> unschedule

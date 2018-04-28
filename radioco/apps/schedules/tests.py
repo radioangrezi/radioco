@@ -21,17 +21,15 @@ import recurrence
 
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-import django.utils.timezone
+from django.utils import timezone
 
 from radioco.apps.programmes.models import Programme
 from radioco.apps.schedules import utils
 from radioco.apps.schedules.models import Slot, Schedule, Transmission
-import radioco.utils.tests
-import radioco.utils.timezone
+from radioco.utils.tests import TestDataMixin, now
 
 
 class SlotModelTests(TestCase):
-
     def setUp(self):
         self.programme = Programme.objects.create(
             name="Test programme",
@@ -67,7 +65,7 @@ class SlotModelTests(TestCase):
         self.assertEqual(str(self.slot), "Test programme (1:00:00)")
 
 
-class ScheduleModelTests(radioco.utils.tests.TestDataMixin, TestCase):
+class ScheduleModelTests(TestDataMixin, TestCase):
     def setUp(self):
         self.recurrences = recurrence.Recurrence(
             dtstart=datetime.datetime(2014, 1, 6, 14, 0, 0),
@@ -117,26 +115,31 @@ class ScheduleModelTests(radioco.utils.tests.TestDataMixin, TestCase):
 
     def test_date_before(self):
         self.assertEqual(
-            self.schedule.date_before(datetime.datetime(2014, 1, 14)),
-            datetime.datetime(2014, 1, 13, 14, 0))
+            self.schedule.date_before(
+                timezone.make_aware(datetime.datetime(2014, 1, 14))),
+            timezone.make_aware(datetime.datetime(2014, 1, 13, 14, 0)))
+
+    def test_no_date_before(self):
+        self.assertIsNone(self.schedule.date_before(
+            timezone.make_aware(datetime.datetime(2010, 1, 14))))
 
     def test_date_after(self):
         self.assertEqual(
             self.schedule.date_after(datetime.datetime(2014, 1, 14)),
-            datetime.datetime(2014, 1, 20, 14, 0))
+            timezone.make_aware(datetime.datetime(2014, 1, 20, 14, 0)))
 
     def test_date_after_exclude(self):
         self.assertEqual(
             self.schedule.date_after(
                 datetime.datetime(2014, 1, 6, 14, 0), inc=False),
-            datetime.datetime(2014, 1, 13, 14, 0))
+            timezone.make_aware(datetime.datetime(2014, 1, 13, 14, 0)))
 
     def test_dates_between(self):
         self.assertListEqual(
             list(self.schedule.dates_between(datetime.datetime(2014, 1, 1),
                                              datetime.datetime(2014, 1, 14))),
-            [datetime.datetime(2014, 1, 6, 14, 0),
-             datetime.datetime(2014, 1, 13, 14, 0)])
+            [timezone.make_aware(datetime.datetime(2014, 1, 6, 14, 0)),
+             timezone.make_aware(datetime.datetime(2014, 1, 13, 14, 0))])
 
     def test_dates_between_complex_ruleset(self):
         schedule = Schedule(
@@ -150,9 +153,9 @@ class ScheduleModelTests(radioco.utils.tests.TestDataMixin, TestCase):
         self.assertListEqual(
             list(schedule.dates_between(datetime.datetime(2014, 1, 1),
                                         datetime.datetime(2014, 1, 9))),
-            [datetime.datetime(2014, 1, 2, 14, 0),
-             datetime.datetime(2014, 1, 4, 14, 0),
-             datetime.datetime(2014, 1, 8, 14, 0)])
+            [timezone.make_aware(datetime.datetime(2014, 1, 2, 14, 0)),
+             timezone.make_aware(datetime.datetime(2014, 1, 4, 14, 0)),
+             timezone.make_aware(datetime.datetime(2014, 1, 8, 14, 0))])
 
     # hacky workaround, remove after upstream bug is solved
     # https://github.com/django-recurrence/django-recurrence/issues/94
@@ -167,9 +170,9 @@ class ScheduleModelTests(radioco.utils.tests.TestDataMixin, TestCase):
         self.assertListEqual(
             list(schedule.dates_between(datetime.datetime(2014, 1, 4),
                                         datetime.datetime(2014, 1, 7))),
-            [datetime.datetime(2014, 1, 4, 14, 0),
-             datetime.datetime(2014, 1, 5, 14, 0),
-             datetime.datetime(2014, 1, 6, 14, 0)])
+            [timezone.make_aware(datetime.datetime(2014, 1, 4, 14, 0)),
+             timezone.make_aware(datetime.datetime(2014, 1, 5, 14, 0)),
+             timezone.make_aware(datetime.datetime(2014, 1, 6, 14, 0))])
 
 
     # hacky workaround, remove after upstream bug is solved
@@ -185,26 +188,24 @@ class ScheduleModelTests(radioco.utils.tests.TestDataMixin, TestCase):
         self.assertListEqual(
             list(schedule.dates_between(datetime.datetime(2014, 1, 4),
                                         datetime.datetime(2014, 1, 7))),
-            [datetime.datetime(2014, 1, 4, 14, 0),
-             datetime.datetime(2014, 1, 6, 14, 0)])
+            [timezone.make_aware(datetime.datetime(2014, 1, 4, 14, 0)),
+             timezone.make_aware(datetime.datetime(2014, 1, 6, 14, 0))])
 
     def test_str(self):
         self.assertEqual(str(self.schedule), 'Monday - 14:00:00')
 
-    @mock.patch('django.utils.timezone.now', radioco.utils.tests.now)
+    @mock.patch('django.utils.timezone.now', now)
     def test_save_rearange_episodes(self):
         self.assertEqual(
             self.episode.issue_date,
-            radioco.utils.timezone.make_aware_from_settings(
-                datetime.datetime(2015, 1, 1, 14, 0)))
+            timezone.make_aware(datetime.datetime(2015, 1, 1, 14, 0)))
 
         self.schedule.save()
         self.episode.refresh_from_db()
 
         self.assertEqual(
             self.episode.issue_date,
-            radioco.utils.timezone.make_aware_from_settings(
-                datetime.datetime(2014, 1, 6, 14, 0)))
+            timezone.make_aware(datetime.datetime(2014, 1, 6, 14, 0)))
 
     def test_validation_slot_invalid(self):
         self.schedule.slot = None
@@ -220,10 +221,11 @@ class ScheduleModelTests(radioco.utils.tests.TestDataMixin, TestCase):
         self.assertIsNone(self.schedule.clean_fields())
 
 
-class TransmissionModelTests(radioco.utils.tests.TestDataMixin, TestCase):
+class TransmissionModelTests(TestDataMixin, TestCase):
     def setUp(self):
         self.transmission = Transmission(
-            self.schedule, datetime.datetime(2015, 1, 6, 14, 0, 0))
+            self.schedule,
+            timezone.make_aware(datetime.datetime(2015, 1, 6, 14, 0, 0)))
 
     def test_nonexistent_date(self):
         with self.assertRaises(ValueError):
@@ -236,18 +238,17 @@ class TransmissionModelTests(radioco.utils.tests.TestDataMixin, TestCase):
     def test_start(self):
         self.assertEqual(
             self.transmission.start,
-            radioco.utils.timezone.make_aware_from_settings(
-                datetime.datetime(2015, 1, 6, 14, 0, 0)))
+            timezone.make_aware(datetime.datetime(2015, 1, 6, 14, 0, 0)))
 
     def test_end(self):
         self.assertEqual(
             self.transmission.end,
-            radioco.utils.timezone.make_aware_from_settings(
-                datetime.datetime(2015, 1, 6, 15, 0, 0)))
+            timezone.make_aware(datetime.datetime(2015, 1, 6, 15, 0, 0)))
 
     def test_get_or_create_existent_episode(self):
-        transmission = Transmission(self.schedule,
-                                    datetime.datetime(2015, 1, 1, 14, 0))
+        transmission = Transmission(
+            self.schedule,
+            timezone.make_aware(datetime.datetime(2015, 1, 1, 14, 0)))
         self.assertEqual(transmission._get_or_create_episode(), self.episode)
 
     def test_get_or_create_repetition_episode(self):
@@ -255,21 +256,23 @@ class TransmissionModelTests(radioco.utils.tests.TestDataMixin, TestCase):
             Schedule(slot=self.slot, type='R',
                      recurrences=recurrence.Recurrence(
                          dtstart=datetime.datetime(2015, 1, 1, 14, 30))),
-            datetime.datetime(2015, 1, 1, 14, 30))
+            timezone.make_aware(datetime.datetime(2015, 1, 1, 14, 30)))
         self.assertEqual(transmission._get_or_create_episode(), self.episode)
 
 
     def test_get_or_create_nonexistent_episode(self):
-        transmission = Transmission(self.schedule,
-                                    datetime.datetime(2016, 1, 1, 14, 0))
+        transmission = Transmission(
+            self.schedule,
+            timezone.make_aware(datetime.datetime(2016, 1, 1, 14, 0)))
         episode = transmission._get_or_create_episode()
         self.assertIsNone(episode)
 
     def test_at(self):
-        now = Transmission.at(datetime.datetime(2015, 1, 6, 14, 30, 0))
+        now = Transmission.at(
+            timezone.make_aware(datetime.datetime(2015, 1, 6, 14, 30, 0)))
         self.assertListEqual(
             [(t.programme.slug, t.start) for t in now],
-            [(u'classic-hits', radioco.utils.timezone.make_aware_from_settings(
+            [(u'classic-hits', timezone.make_aware(
                 datetime.datetime(2015, 1, 6, 14, 0)))])
 
     def test_between(self):
@@ -277,15 +280,13 @@ class TransmissionModelTests(radioco.utils.tests.TestDataMixin, TestCase):
                                        datetime.datetime(2015, 1, 6, 17, 0, 0))
         self.assertListEqual(
             [(t.programme.slug, t.start) for t in between],
-            [(u'the-best-wine',
-              radioco.utils.timezone.make_aware_from_settings(
-                  datetime.datetime(2015, 1, 6, 12, 0))),
-             (u'local-gossips',
-              radioco.utils.timezone.make_aware_from_settings(
-                  datetime.datetime(2015, 1, 6, 13, 0))),
-             (u'classic-hits',
-              radioco.utils.timezone.make_aware_from_settings(
-                  datetime.datetime(2015, 1, 6, 14, 0)))])
+            [
+                (u'the-best-wine', timezone.make_aware(
+                    datetime.datetime(2015, 1, 6, 12, 0))),
+                (u'local-gossips', timezone.make_aware(
+                    datetime.datetime(2015, 1, 6, 13, 0))),
+                (u'classic-hits', timezone.make_aware(
+                    datetime.datetime(2015, 1, 6, 14, 0)))])
 
     def test_between_time_change_skip(self):
         schedule = Schedule(
@@ -306,21 +307,20 @@ class TransmissionModelTests(radioco.utils.tests.TestDataMixin, TestCase):
                 dtstart=datetime.datetime(2018, 3, 24, 2, 30, 0),
                 rrules=[recurrence.Rule(recurrence.DAILY)]))
         between = Transmission.between(
-            datetime.datetime(2018, 3, 24, 0, 0, 0),
-            datetime.datetime(2018, 3, 26, 5, 0, 0),
+            timezone.make_aware(datetime.datetime(2018, 3, 24, 0, 0, 0)),
+            timezone.make_aware(datetime.datetime(2018, 3, 26, 5, 0, 0)),
             schedules=[schedule])
-        self.assertEqual(
-            [t.start for t in between],
+
+        self.assertListEqual(
             [
-                datetime.datetime(
-                    2018, 3, 24, 2, 30,
-                    tzinfo=datetime.timezone(datetime.timedelta(hours=1))),
-                datetime.datetime(
-                    2018, 3, 26, 2, 30,
-                    tzinfo=datetime.timezone(datetime.timedelta(hours=2)))])
+                (timezone.make_naive(t.start),
+                 t.start.tzname()) for t in between],
+            [
+                (datetime.datetime(2018, 3, 24, 2, 30), 'CET'),
+                (datetime.datetime(2018, 3, 26, 2, 30), 'CEST')])
 
 
-class ScheduleUtilsTests(radioco.utils.tests.TestDataMixin, TestCase):
+class ScheduleUtilsTests(TestDataMixin, TestCase):
     def test_available_dates_after(self):
         Schedule.objects.create(
             slot=self.slot,
@@ -333,9 +333,15 @@ class ScheduleUtilsTests(radioco.utils.tests.TestDataMixin, TestCase):
         dates = utils.available_dates(
             self.programme, datetime.datetime(2015, 1, 5))
 
-        self.assertEqual(next(dates), datetime.datetime(2015, 1, 5, 14, 0))
-        self.assertEqual(next(dates), datetime.datetime(2015, 1, 6, 14, 0))
-        self.assertEqual(next(dates), datetime.datetime(2015, 1, 6, 16, 0))
+        self.assertEqual(
+            next(dates),
+            timezone.make_aware(datetime.datetime(2015, 1, 5, 14, 0)))
+        self.assertEqual(
+            next(dates),
+            timezone.make_aware(datetime.datetime(2015, 1, 6, 14, 0)))
+        self.assertEqual(
+            next(dates),
+            timezone.make_aware(datetime.datetime(2015, 1, 6, 16, 0)))
 
     def test_available_dates_none(self):
         dates = utils.available_dates(
@@ -346,20 +352,16 @@ class ScheduleUtilsTests(radioco.utils.tests.TestDataMixin, TestCase):
     def test_rearrenge_episodes(self):
         utils.rearrange_episodes(
             self.programme,
-            django.utils.timezone.make_aware(datetime.datetime(2015, 1, 1)))
+            timezone.make_aware(datetime.datetime(2015, 1, 1)))
+
         self.assertListEqual(
             [e.issue_date for e in self.programme.episode_set.all()[:5]],
             [
-                radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 1, 14, 0)),
-                radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 2, 14, 0)),
-                radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 3, 14, 0)),
-                radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 4, 14, 0)),
-                radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 5, 14, 0))])
+                timezone.make_aware(datetime.datetime(2015, 1, 1, 14, 0)),
+                timezone.make_aware(datetime.datetime(2015, 1, 2, 14, 0)),
+                timezone.make_aware(datetime.datetime(2015, 1, 3, 14, 0)),
+                timezone.make_aware(datetime.datetime(2015, 1, 4, 14, 0)),
+                timezone.make_aware(datetime.datetime(2015, 1, 5, 14, 0))])
 
     def test_rearrenge_episodes_new_schedule(self):
         Schedule.objects.create(
@@ -372,17 +374,13 @@ class ScheduleUtilsTests(radioco.utils.tests.TestDataMixin, TestCase):
 
         utils.rearrange_episodes(
             self.programme,
-            django.utils.timezone.make_aware(datetime.datetime(2015, 1, 1)))
+            timezone.make_aware(datetime.datetime(2015, 1, 1)))
+
         self.assertListEqual(
             [e.issue_date for e in self.programme.episode_set.all()[:5]],
             [
-                radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 1, 14, 0)),
-                radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 2, 14, 0)),
-                radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 3, 14, 0)),
-                radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 3, 16, 0)),
-                radioco.utils.timezone.make_aware_from_settings(
-                    datetime.datetime(2015, 1, 4, 14, 0))])
+                timezone.make_aware(datetime.datetime(2015, 1, 1, 14, 0)),
+                timezone.make_aware(datetime.datetime(2015, 1, 2, 14, 0)),
+                timezone.make_aware(datetime.datetime(2015, 1, 3, 14, 0)),
+                timezone.make_aware(datetime.datetime(2015, 1, 3, 16, 0)),
+                timezone.make_aware(datetime.datetime(2015, 1, 4, 14, 0))])

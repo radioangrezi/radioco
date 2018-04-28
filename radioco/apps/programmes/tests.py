@@ -27,12 +27,11 @@ from django.utils import timezone
 
 from radioco.apps.programmes.models import (
     Programme, Episode, EpisodeManager, Role)
-import radioco.utils.tests
+from radioco.utils.tests import TestDataMixin, now
 
 
 class ProgrammeModelTests(TestCase):
-
-    @mock.patch('django.utils.timezone.now', radioco.utils.tests.now)
+    @mock.patch('django.utils.timezone.now', now)
     def setUp(self):
         self.programme = Programme.objects.create(
             name="Test programme",
@@ -79,13 +78,14 @@ class ProgrammeModelAdminTests(TestCase):
             'category', 'website', 'slug'])
 
 
-class EpisodeManagerTests(radioco.utils.tests.TestDataMixin, TestCase):
+class EpisodeManagerTests(TestDataMixin, TestCase):
     def setUp(self):
         self.manager = EpisodeManager()
 
         self.episode = self.manager.create_episode(
             timezone.make_aware(datetime.datetime(2014, 6, 14, 10, 0, 0)),
             self.programme)
+
 
     def test_create_episode(self):
         self.assertIsInstance(self.episode, Episode)
@@ -129,7 +129,7 @@ class EpisodeManagerTests(radioco.utils.tests.TestDataMixin, TestCase):
 
 class EpisodeModelTests(TestCase):
 
-    @mock.patch('django.utils.timezone.now', radioco.utils.tests.now)
+    @mock.patch('django.utils.timezone.now', now)
     def setUp(self):
         self.programme = Programme.objects.create(
             name="Test programme",
@@ -153,7 +153,7 @@ class EpisodeModelTests(TestCase):
 
     def test_updated_at(self):
         self.assertEqual(
-            self.episode.updated_at, 
+            self.episode.updated_at,
             timezone.make_aware(datetime.datetime(2014, 1, 1, 13, 30, 0, 0)))
 
     def test_str(self):

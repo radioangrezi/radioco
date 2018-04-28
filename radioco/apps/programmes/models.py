@@ -28,8 +28,6 @@ from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
-import radioco.utils.timezone
-
 
 if hasattr(settings, 'PROGRAMME_LANGUAGES'):
     PROGRAMME_LANGUAGES = settings.PROGRAMME_LANGUAGES
@@ -117,8 +115,6 @@ class Programme(models.Model):
 
 class EpisodeManager(models.Manager):
     def create_episode(self, date, programme, last_episode=None, episode=None):
-        date = radioco.utils.timezone.make_aware(date)
-
         if not last_episode:
             # may also be None
             last_episode = self.last(programme)
@@ -156,7 +152,6 @@ class EpisodeManager(models.Manager):
         return episodes.order_by("-season", "-number_in_season").first()
 
     def unfinished(self, programme, after=None):
-        after = radioco.utils.timezone.make_aware(after)
         if not after:
             after = timezone.now()
 

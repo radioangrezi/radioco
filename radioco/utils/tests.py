@@ -20,16 +20,14 @@ import mock
 import pytz
 
 from django.test import TestCase
-import django.utils.timezone
+from django.utils import timezone
 
 from radioco.apps.programmes.models import Programme
-import radioco.utils.timezone
 import radioco.utils.example
 
 
 def now():
-    return django.utils.timezone.make_aware(
-        datetime.datetime(2014, 1, 1, 13, 30, 0))
+    return timezone.make_aware(datetime.datetime(2014, 1, 1, 13, 30, 0))
 
 
 class TestDataMixin(object):
@@ -41,45 +39,3 @@ class TestDataMixin(object):
         cls.slot = cls.programme.slot_set.first()
         cls.schedule = cls.slot.schedule_set.first()
         cls.episode = cls.programme.episode_set.first()
-
-
-class UtilsTests(TestCase):
-    def test_timezone_make_aware(self):
-        self.assertEqual(
-            radioco.utils.timezone.make_aware(
-                datetime.datetime(
-                    2018, 3, 17, 0, 0, tzinfo=pytz.timezone('utc'))),
-            datetime.datetime(2018, 3, 17, 0, 0, tzinfo=pytz.timezone('utc')))
-
-    def test_timezone_make_aware_no_tz(self):
-        self.assertEqual(
-            radioco.utils.timezone.make_aware(
-                datetime.datetime(2018, 3, 17, 0, 0)),
-            radioco.utils.timezone.make_aware_from_settings(
-                datetime.datetime(2018, 3, 17, 0, 0)))
-
-    def test_make_aware_none(self):
-        self.assertIsNone(radioco.utils.timezone.make_aware(None))
-
-    def test_timezone_make_naive(self):
-        self.assertEqual(
-            radioco.utils.timezone.make_naive(
-                datetime.datetime(
-                    2018, 3, 17, 0, 0, tzinfo=pytz.timezone('utc'))),
-            datetime.datetime(2018, 3, 17, 1, 0))
-
-    def test_timezone_make_naive_no_tz(self):
-        self.assertEqual(
-            radioco.utils.timezone.make_naive(
-                datetime.datetime(2018, 3, 17, 0, 0)),
-            datetime.datetime(2018, 3, 17, 0, 0))
-
-    def test_timezone_make_naive_none(self):
-        self.assertIsNone(radioco.utils.timezone.make_naive(None))
-
-    def test_timezone_make_aware_from_settings_no_tz(self):
-        self.assertEqual(
-            radioco.utils.timezone.make_aware_from_settings(
-                datetime.datetime(2018, 3, 17, 0, 0)),
-            pytz.timezone('Europe/Berlin').localize(
-                datetime.datetime(2018, 3, 17, 0, 0)))

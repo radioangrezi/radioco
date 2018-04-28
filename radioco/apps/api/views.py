@@ -1,7 +1,7 @@
 import datetime
 
 from django import forms
-from django import utils
+from django.utils import timezone
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 
@@ -45,7 +45,7 @@ class TransmissionForm(forms.Form):
     def clean_after(self):
         after = self.cleaned_data.get('after')
         if after is None:
-            return utils.timezone.now().replace(day=1)
+            return timezone.now().replace(day=1)
         return after
 
     def clean_before(self):
@@ -73,8 +73,8 @@ class TransmissionViewSet(viewsets.GenericViewSet):
 
     @list_route()
     def now(self, request):
-        now = utils.timezone.now()
-        transmissions = Transmission.at(now)
+        _now = timezone.now()
+        transmissions = Transmission.at(_now)
         serializer = self.get_serializer(
             transmissions, many=True, context={'request': request})
         return Response(serializer.data)
