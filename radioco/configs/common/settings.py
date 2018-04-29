@@ -68,8 +68,8 @@ INSTALLED_APPS = (
     # Local Project Apps
     'radioco.apps.api',
     'radioco.apps.users',
-    'radioco.apps.programmes',
-    'radioco.apps.schedules',
+    'radioco.apps.programmes.apps.ProgrammesConfig',
+    'radioco.apps.schedules.apps.SchedulesConfig',
     'radioco.apps.global_settings',
     'radioco.apps.radio',
 )

@@ -17,7 +17,6 @@
 
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from django.utils import timezone
 
 from recurrence.fields import RecurrenceField
 
@@ -93,12 +92,6 @@ class Schedule(models.Model):
 
     def date_after(self, after, inc=True):
         return self.recurrences.after(after, inc=inc)
-
-    def save(self, *args, **kwargs):
-        import radioco.apps.schedules.utils
-        super(Schedule, self).save(*args, **kwargs)
-        radioco.apps.schedules.utils.rearrange_episodes(
-            self.slot.programme, timezone.now())
 
     def __str__(self):
         return ' - '.join(

@@ -23,7 +23,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db import transaction
 from django.db.models import Q
-from django.template.defaultfilters import slugify
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
 
@@ -99,11 +98,6 @@ class Programme(models.Model):
     slug = models.SlugField(max_length=100, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    # XXX form
-    def save(self, *args, **kwargs):
-        self.slug = slugify(self.name)
-        super(Programme, self).save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse('programmes:detail', args=[self.slug])
