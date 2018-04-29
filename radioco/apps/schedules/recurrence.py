@@ -11,8 +11,8 @@ implementation.
  """
 
 
-def init(self, *argc, **argv):
-    self.___init__(*argc, **argv)
+def init(self, *args, **kwargs):
+    self.___init__(*args, **kwargs)
 
     # hacky workaround, remove after upstream bug is solved
     # https://github.com/django-recurrence/django-recurrence/issues/94
@@ -28,34 +28,34 @@ def init(self, *argc, **argv):
     self.exdates = [fix_date(dt) for dt in self.exdates]
 
 
-def before(self, dt, **argv):
+def before(self, dt, **kwargs):
     if timezone.is_aware(dt):
         dt = timezone.make_naive(dt)
 
-    _dt = self._before(dt, **argv)
+    _dt = self._before(dt, **kwargs)
     if _dt:
         return timezone.make_aware(_dt)
     return None
 
 
-def after(self, dt, **argv):
+def after(self, dt, **kwargs):
     if timezone.is_aware(dt):
         dt = timezone.make_naive(dt)
 
-    _dt = self._after(dt, **argv)
+    _dt = self._after(dt, **kwargs)
     if _dt:
         return timezone.make_aware(_dt)
     return None
 
 
-def between(self, after, before, **argv):
+def between(self, after, before, **kwargs):
     if timezone.is_aware(after):
         after = timezone.make_naive(after)
 
     if timezone.is_aware(before):
         before = timezone.make_naive(before)
 
-    for dt in self._between(after, before, **argv):
+    for dt in self._between(after, before, **kwargs):
         try:
             yield timezone.make_aware(dt)
         except NonExistentTimeError:
