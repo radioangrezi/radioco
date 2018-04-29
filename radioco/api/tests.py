@@ -219,6 +219,14 @@ class TestAPI(TestDataMixin, APITestCase):
             sorted(response.data, key=lambda t: t['start'])[-1]['start'],
             '2015-01-14T20:00:00+01:00')
 
+    def test_transmission_before_earlier_than_after(self):
+        with self.assertRaises(ValidationError):
+            response = self.client.get(
+                '/api/2/transmissions',
+                dict(
+                    after=datetime.datetime(2015, 2, 14, 21, 0).isoformat(),
+                    before=datetime.datetime(2015, 1, 14, 21, 0).isoformat()))
+
     def test_transmission_invalid_input(self):
         with self.assertRaises(ValidationError):
             response = self.client.get(

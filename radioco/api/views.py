@@ -49,11 +49,15 @@ class TransmissionForm(forms.Form):
         return after
 
     def clean_before(self):
-        # XXX raise if before < after
         before = self.cleaned_data.get('before')
         if before is None:
             return self.clean_after() + datetime.timedelta(days=31)
         return before
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if self.clean_after() > self.clean_before():
+            self.add_error('before', 'must be later than after')
 
 
 class TransmissionViewSet(viewsets.GenericViewSet):
