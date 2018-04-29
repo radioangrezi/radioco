@@ -1,5 +1,5 @@
 # Radioco - Broadcasting Radio Recording Scheduling system.
-# Copyright (C) 2014  Iago Veloso Abalo, Stefan Walluhn
+# Copyright (C) 2014  Iago Veloso Abalo
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -15,27 +15,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import datetime
-import mock
-import pytz
+from django.conf.urls import url
+from django.views.generic import ListView
 
-from django.test import TestCase
-from django.utils import timezone
-
+from radioco.programmes import views
+from radioco.programmes.feeds import RssProgrammeFeed
 from radioco.programmes.models import Programme
-import radioco.utils.example
 
-
-def now():
-    return timezone.make_aware(datetime.datetime(2014, 1, 1, 13, 30, 0))
-
-
-class TestDataMixin(object):
-    @classmethod
-    @mock.patch('django.utils.timezone.now', now)
-    def setUpTestData(cls):
-        radioco.utils.example.create_example_data()
-        cls.programme = Programme.objects.get(name="Classic hits")
-        cls.slot = cls.programme.slot_set.first()
-        cls.schedule = cls.slot.schedule_set.first()
-        cls.episode = cls.programme.episode_set.first()
+urlpatterns = [
+   url(
+       r'^$',
+       ListView.as_view(
+           queryset=Programme.objects.order_by('name'),
+           template_name='programmes/programme_list.html'),
+       name='list'),
+   url(r'^(?P<slug>[-\w]+)/$', views.programme_detail, name='detail'),
+   url(
+       r'^(?P<slug>[-\w]+)/(?P<season_number>\d+)x(?P<episode_number>\d+)/$',
+       views.episode_detail,
+       name='episode_detail'),
+   url(r'^(?P<slug>[-\w]+)/rss/$', RssProgrammeFeed(), name='rss')]

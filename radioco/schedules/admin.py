@@ -15,27 +15,23 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import datetime
-import mock
-import pytz
-
-from django.test import TestCase
-from django.utils import timezone
-
-from radioco.programmes.models import Programme
-import radioco.utils.example
+from radioco.schedules.models import Schedule, Slot
+from django.contrib import admin
 
 
-def now():
-    return timezone.make_aware(datetime.datetime(2014, 1, 1, 13, 30, 0))
+@admin.register(Slot)
+class SlotAdmin(admin.ModelAdmin):
+    list_display = ('name', 'runtime')
+    list_filter = ('programme__name', 'runtime')
+
+    def name(self, slot):
+        return slot.programme.name
+    name.admin_order_field = 'programme__name'
 
 
-class TestDataMixin(object):
-    @classmethod
-    @mock.patch('django.utils.timezone.now', now)
-    def setUpTestData(cls):
-        radioco.utils.example.create_example_data()
-        cls.programme = Programme.objects.get(name="Classic hits")
-        cls.slot = cls.programme.slot_set.first()
-        cls.schedule = cls.slot.schedule_set.first()
-        cls.episode = cls.programme.episode_set.first()
+@admin.register(Schedule)
+class ScheduleAdmin(admin.ModelAdmin):
+    change_list_template = "admin/schedules/calendar.html"
+
+    def has_add_permission(self, request):
+        return False

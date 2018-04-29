@@ -3,12 +3,12 @@ from django.utils import timezone
 import datetime
 import recurrence
 
-from radioco.apps.global_settings.models import (
+from radioco.global_settings.models import (
     SiteConfiguration, CalendarConfiguration)
-from radioco.apps.programmes.models import (
+from radioco.programmes.models import (
     Programme, Episode, Role, CONTRIBUTOR, Podcast)
-from radioco.apps.schedules.models import Slot, Schedule
-from radioco.apps.schedules.utils import rearrange_episodes
+from radioco.schedules.models import Slot, Schedule
+from radioco.schedules.utils import rearrange_episodes
 
 
 def create_example_data():

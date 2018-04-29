@@ -24,31 +24,19 @@ from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.utils.translation import ugettext_lazy as _
 from filebrowser.sites import site
 
-from radioco.apps.radio import views
-
 admin.site.site_header = _('RadioCo administration')
 admin.site.site_title = _('RadioCo site admin')
 
 
 urlpatterns = [
-    url(r'^$', views.index, name="home"),
     url(r'^grappelli/', include('grappelli.urls')),
-    url(r'^admin/filebrowser/', include(site.urls)),
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^admin/password_reset/$', auth_views.password_reset, name='admin_password_reset'),
-    url(r'^admin/password_reset/done/$', auth_views.password_reset_done, name='password_reset_done'),
-    url(r'^reset/(?P<uidb64>[0-9A-Za-z_\-]+)/(?P<token>.+)/$', auth_views.password_reset_confirm, name='password_reset_confirm'),
-    url(r'^reset/done/$', auth_views.password_reset_complete, name='password_reset_complete'),
-
-    url(r'^schedules/', include('radioco.apps.schedules.urls', namespace="schedules")),
-    url(r'^programmes/', include('radioco.apps.programmes.urls', namespace="programmes")),
-    url(r'^users/', include('radioco.apps.users.urls', namespace="users")),
-
+    url(r'^filebrowser/', include(site.urls)),
     url(r'^ckeditor/', include('ckeditor_uploader.urls')),
 
-    url(r'^api/1/recording_schedules/$', views.recording_schedules, name="recording_schedules"),
-    url(r'^api/1/submit_recorder/$', views.submit_recorder, name="submit_recorder"),
-    url(r'^api/2/', include('radioco.apps.api.urls', namespace="api"))]
+    url(r'^', include(admin.site.urls)),
+    url(r'^password_reset/$', auth_views.password_reset, name='admin_password_reset'),
+    url(r'^password_reset/done/$', auth_views.password_reset_done, name='password_reset_done'),
+    url(r'^api/2/', include('radioco.api.urls', namespace="api"))]
 
 if settings.DEBUG and 'debug_toolbar' in settings.INSTALLED_APPS:
     import debug_toolbar

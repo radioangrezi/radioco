@@ -66,12 +66,11 @@ INSTALLED_APPS = (
     'rest_framework.authtoken',
 
     # Local Project Apps
-    'radioco.apps.api',
-    'radioco.apps.users',
-    'radioco.apps.programmes.apps.ProgrammesConfig',
-    'radioco.apps.schedules.apps.SchedulesConfig',
-    'radioco.apps.global_settings',
-    'radioco.apps.radio',
+    'radioco.api.apps.API',
+    'radioco.users',
+    'radioco.programmes.apps.Programmes',
+    'radioco.schedules.apps.Schedules',
+    'radioco.global_settings',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -97,8 +96,7 @@ TEMPLATES = [
                 'django.template.context_processors.media',
                 'django.template.context_processors.request',
                 'django.template.context_processors.static',
-                'django.template.context_processors.tz',
-                'radioco.apps.radio.context_processors.settings'),
+                'django.template.context_processors.tz'),
             'loaders': (
                 'django.template.loaders.filesystem.Loader',
                 'django.template.loaders.app_directories.Loader'),
