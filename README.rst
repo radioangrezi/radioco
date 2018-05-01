@@ -2,15 +2,8 @@
 RadioCo
 ############
 
-.. image:: https://travis-ci.org/iago1460/django-radio.svg
-   :target: https://travis-ci.org/iago1460/django-radio
-
-.. image:: https://coveralls.io/repos/github/iago1460/django-radio/badge.svg?branch=master
-   :target: https://coveralls.io/github/iago1460/django-radio?branch=master
-
-.. image:: https://requires.io/github/iago1460/django-radio/requirements.svg?branch=master
-   :target: https://requires.io/github/iago1460/django-radio/requirements/?branch=master
-   :alt: Requirements Status
+.. image:: https://api.travis-ci.org/RadioCorax/radioco.svg
+   :target: https://api.travis-ci.org/RadioCorax/radioco
 
 RadioCo is a radio management application that makes easy scheduling, live recording, publishing...
 
@@ -25,8 +18,6 @@ Features
 
 * ...and much more
 
-.. image:: /screenshots/home_preview.png?raw=true
-
 More information on `our website <http://radioco.org/>`_.
 
 *************
@@ -39,27 +30,28 @@ the details on how to install, extend and use RadioCo.
 ***********
 Quick Start
 ***********
-Open a terminal and introduce the following commands::
+Open a terminal and run the following commands::
 
-    git clone https://github.com/iago1460/django-radio
-    cd django-radio
-    virtualenv venv
-    source venv/bin/activate
-    pip install -r radio/configs/common/requirements.txt
-    fab quickstart
-    
-    
+    git clone https://github.com/RadioCorax/radioco
+    cd radioco
+    virtualenv --python=python3 .
+    ./bin/python setup.py install
+    npm install
+    ./bin/python manage.py collectstatic
+    ./bin/python manage.py create_example_data
+    ./bin/python manage.py runserver
+
 Now that the server’s running (don't close the terminal), visit http://127.0.0.1:8000/
 
-To access administrator site visit http://127.0.0.1:8000/admin/ using "admin/1234"
+To access administrator site visit http://127.0.0.1:8000/ using "admin/1234"
 
-****************
-Deploy on Heroku
-****************
-Quick deploy on Heroku::
+*********
+Run Tests
+*********
+Open a terminal and run the following commands::
 
-    fab save_changes
-    fab heroku_setup
-    fab master heroku_deploy
+    ./bin/python setup.py test
 
+or
 
+    ./bin/python manage.py test <TEST_CASE>
