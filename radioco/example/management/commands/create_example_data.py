@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 
-from radioco.utils import example
+from radioco.example.utils import example
 
 
 class Command(BaseCommand):
