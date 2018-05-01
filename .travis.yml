@@ -6,8 +6,7 @@ python:
   - "3.6"
 
 install:
-  - pip install zc.buildout
-  - buildout
+  - python setup.py install
 
 script:
-  - ./bin/radioco-admin test
+  - python setup.py test
