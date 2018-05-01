@@ -1,0 +1,12 @@
+{
+  "name": "radioco",
+  "license": "GPL-3.0+",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/RadioCorax/radioco"
+  },
+  "dependencies": {
+    "fullcalendar": "3.9.0",
+    "jqueryui": "1.11.1"
+  }
+}
