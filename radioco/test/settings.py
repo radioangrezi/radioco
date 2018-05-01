@@ -17,10 +17,6 @@
 
 import os
 import warnings
-warnings.filterwarnings(
-        'error', r"DateTimeField .* received a naive datetime",
-        RuntimeWarning, r'django\.db\.models\.fields',
-)
 
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 SITE_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.realpath(__file__))))
@@ -45,21 +41,16 @@ INSTALLED_APPS = (
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
-    'django.contrib.sites',
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
     'grappelli',
     'filebrowser',
-    'djangobower',
 
     'django.contrib.admin',
-    'django.contrib.sitemaps',
     'django.contrib.humanize',
 
-    'bootstrap3',
     'ckeditor',
-    'disqus',
     'django_filters',
     'recurrence',
     'rest_framework',
@@ -71,6 +62,7 @@ INSTALLED_APPS = (
     'radioco.programmes.apps.Programmes',
     'radioco.schedules.apps.Schedules',
     'radioco.global_settings',
+    'radioco.example',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -104,7 +96,7 @@ TEMPLATES = [
     },
 ]
 
-ROOT_URLCONF = 'radioco.configs.common.urls'
+ROOT_URLCONF = 'radioco.test.urls'
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
@@ -112,7 +104,7 @@ ROOT_URLCONF = 'radioco.configs.common.urls'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'NAME': os.path.join(SITE_ROOT, 'db.sqlite3'),
     }
 }
 
@@ -132,7 +124,6 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.6/howto/static-files/
 
-
 LOCALE_PATHS = (
     os.path.join(SITE_ROOT, 'locale'),
 )
@@ -143,23 +134,12 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(SITE_ROOT, 'static')
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(SITE_ROOT, 'media')
-BOWER_COMPONENTS_ROOT = os.path.join(SITE_ROOT, 'components')
-
-BOWER_PATH = os.path.join(SITE_ROOT, '..', 'node_modules', '.bin', 'bower')
-
-BOWER_INSTALLED_APPS = (
-    'jqueryui#1.11.4',
-    'jquery#2.2.1',
-    'fullcalendar#3.9.0'
-)
 
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-    'djangobower.finders.BowerFinder',
+    'npm.finders.NpmFinder'
 )
-
-SITE_ID = 1
 
 # Filebrowser
 FILEBROWSER_URL_FILEBROWSER_MEDIA = STATIC_URL + "filebrowser/"
@@ -173,8 +153,6 @@ FILEBROWSER_VERSIONS = {
     'large': {'verbose_name': 'Large (8 col)', 'width': 680, 'height': '', 'opts': ''},
 
     'item_overlap': {'verbose_name': 'Big (6 col)', 'width': 600, 'height': 450, 'opts': 'crop upscale'},
-    'programme_preview': {'verbose_name': 'Big (6 col)', 'width': 800, 'height': 600, 'opts': 'crop upscale'},
-    'person_preview': {'verbose_name': 'Big (6 col)', 'width': 600, 'height': 600, 'opts': 'crop upscale'},
 }
 FILEBROWSER_ADMIN_VERSIONS = [
     'thumb', 'small', 'medium', 'large',
@@ -187,7 +165,7 @@ USERNAME_RADIOCO_RECORDER = 'RadioCo_Recorder'
 
 # CKEditor
 CKEDITOR_UPLOAD_PATH = "uploads/"
-CKEDITOR_JQUERY_URL = '//ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js'
+CKEDITOR_JQUERY_URL = '/'.join([STATIC_URL, 'jquery/dist/jquery.min.js'])
 
 # Available Languages
 gettext_noop = lambda s: s
@@ -197,17 +175,6 @@ PROGRAMME_LANGUAGES = (
     ('gl', gettext_noop('Galician')),
 )
 
-# Disqus
-DISQUS_ENABLE = False
-DISQUS_API_KEY = ''
-DISQUS_WEBSITE_SHORTNAME = ''
-
 # Admin
 GRAPPELLI_ADMIN_HEADLINE = 'RadioCo'
 GRAPPELLI_ADMIN_TITLE = 'RadioCo'
-
-# Import local settings
-try:
-    from local_settings import *
-except ImportError:
-    pass

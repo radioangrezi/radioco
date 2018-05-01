@@ -1,8 +1,0 @@
--r ../common/requirements.txt
-pygraphviz
-django-debug-toolbar
-coverage
-mock
-psycopg2
-#python-sphinx #pip install -U Sphinx
-

@@ -23,7 +23,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from radioco.programmes.models import Programme, Episode, EpisodeManager
-from radioco.utils.tests import TestDataMixin, now
+from radioco.test.utils import TestDataMixin, now
 
 
 class ProgrammeModelTests(TestCase):

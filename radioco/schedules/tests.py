@@ -26,7 +26,7 @@ from django.utils import timezone
 from radioco.programmes.models import Programme
 from radioco.schedules import utils
 from radioco.schedules.models import Slot, Schedule, Transmission
-from radioco.utils.tests import TestDataMixin, now
+from radioco.test.utils import TestDataMixin, now
 
 
 class SlotModelTests(TestCase):

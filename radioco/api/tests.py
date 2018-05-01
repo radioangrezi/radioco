@@ -29,7 +29,7 @@ from radioco.api import serializers
 from radioco.api import views
 from radioco.programmes.models import Programme, Episode
 from radioco.schedules.models import Schedule, Transmission
-from radioco.utils.tests import TestDataMixin, now
+from radioco.test.utils import TestDataMixin, now
 
 
 class TestSerializers(TestDataMixin, TestCase):

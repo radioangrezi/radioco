@@ -23,7 +23,7 @@ from django.test import TestCase
 from django.utils import timezone
 
 from radioco.programmes.models import Programme
-import radioco.utils.example
+from radioco.example.utils import example
 
 
 def now():
@@ -34,7 +34,7 @@ class TestDataMixin(object):
     @classmethod
     @mock.patch('django.utils.timezone.now', now)
     def setUpTestData(cls):
-        radioco.utils.example.create_example_data()
+        example.create_example_data()
         cls.programme = Programme.objects.get(name="Classic hits")
         cls.slot = cls.programme.slot_set.first()
         cls.schedule = cls.slot.schedule_set.first()
