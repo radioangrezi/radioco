@@ -41,7 +41,7 @@ Open a terminal and run the following commands::
     ./bin/python manage.py create_example_data
     ./bin/python manage.py runserver
 
-Now that the server’s running (don't close the terminal), visit http://127.0.0.1:8000/
+Now that the server's running (don't close the terminal), visit http://127.0.0.1:8000/
 
 To access administrator site visit http://127.0.0.1:8000/ using "admin/1234"
 
