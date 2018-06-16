@@ -96,7 +96,7 @@ TEMPLATES = [
     },
 ]
 
-ROOT_URLCONF = 'radioco.test.urls'
+ROOT_URLCONF = 'radioco.urls'
 
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases

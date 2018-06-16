@@ -6,7 +6,7 @@ from django.test.utils import get_runner
 from django.conf import settings
 
 def runtests():
-    os.environ['DJANGO_SETTINGS_MODULE'] = 'radioco.test.settings'
+    os.environ['DJANGO_SETTINGS_MODULE'] = 'radioco.settings'
     django.setup()
     TestRunner = get_runner(settings)
     test_runner = TestRunner()
